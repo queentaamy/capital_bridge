@@ -86,7 +86,7 @@ async function runPhase2Tests() {
   console.log('\n--- Suite 5: Top Navbar & Persona Context ---');
   const navbarFile = fs.readFileSync(path.join(srcDir, 'components', 'layout', 'Navbar.tsx'), 'utf-8');
   assert(navbarFile.includes('CapitalBridge'), 'Navbar renders CapitalBridge brand logo');
-  assert(navbarFile.includes('Prototype v1.0'), 'Navbar renders Prototype v1.0 badge');
+  assert(navbarFile.includes('Explainable Financial-Readiness Platform'), 'Navbar renders platform subtitle');
   assert(navbarFile.includes('readinessBand'), 'Navbar displays live readiness band');
   assert(navbarFile.includes('score'), 'Navbar displays live readiness score');
   assert(navbarFile.includes('onOpenPassport'), 'Navbar includes direct Financial Passport action');

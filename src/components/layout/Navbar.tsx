@@ -91,9 +91,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-900 tracking-tight text-lg">CapitalBridge</span>
-              <span className="text-[10px] uppercase font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full">
-                Prototype v1.0
-              </span>
             </div>
             <p className="text-[11px] text-slate-500 hidden sm:block font-medium">
               Explainable Financial-Readiness Platform
