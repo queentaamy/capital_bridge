@@ -9,7 +9,7 @@ import {
   RotateCcw,
   Zap,
 } from 'lucide-react';
-import type { EvidenceRecord } from '../../types';
+import type { EvidenceRecord, UserProfile } from '../../types';
 import {
   runWhatIfScenario,
   PRESET_SCENARIOS,
@@ -19,12 +19,14 @@ import {
 interface WhatIfSimulatorProps {
   profileId: string;
   records: EvidenceRecord[];
+  profile?: UserProfile;
   onApplyScenario?: (params: ScenarioAdjustmentParams) => void;
 }
 
 export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
   profileId,
   records,
+  profile,
   onApplyScenario,
 }) => {
   const [params, setParams] = useState<ScenarioAdjustmentParams>({
@@ -119,7 +121,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
           {/* Left: Base Score (Before) */}
           <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 sm:p-6 text-center relative">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-white border border-slate-200 px-2.5 py-0.5 rounded-full shadow-xs">
-              Baseline (Ama's Seed)
+              {profile ? `Baseline (${profile.name.split(' ')[0]})` : "Baseline (Ama's Seed)"}
             </span>
             <div className="text-4xl sm:text-5xl font-black text-slate-900 tabular-nums tracking-tight my-2.5">
               {scenarioResult.baseScore}
@@ -242,7 +244,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
               className="w-full accent-emerald-600 cursor-pointer"
             />
             <p className="text-[11px] text-slate-500">
-              Closes documentation gap from March to May 2026.
+              Closes documentation gap to achieve full 6-month observation window.
             </p>
           </div>
 
@@ -269,7 +271,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
               className="w-full accent-emerald-600 cursor-pointer"
             />
             <p className="text-[11px] text-slate-500">
-              Pays off remaining Advans MFI loan installments.
+              Reduces or pays off monthly debt service installments to unlock debt capacity.
             </p>
           </div>
 

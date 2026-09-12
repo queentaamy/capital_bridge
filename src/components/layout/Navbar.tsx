@@ -15,18 +15,23 @@ import {
   Building,
   LogIn,
   LogOut,
+  RotateCcw,
+  X,
 } from 'lucide-react';
 import type { UserProfile, ReadinessBand } from '../../types';
 
 export type CloudSyncStatus = 'synced' | 'syncing' | 'offline';
 
-interface NavbarProps {
+export interface NavbarProps {
   profile: UserProfile;
   score: number;
   readinessBand: ReadinessBand;
   cloudSyncStatus?: CloudSyncStatus;
   profiles?: UserProfile[];
   sessionUser?: { id: string; email: string } | null;
+  observationWindow?: string;
+  onSelectObservationWindow?: (window: string) => void;
+  onOpenSearch?: () => void;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
   onSignOut?: () => void;
   onSelectProfile?: (profileId: string) => void;
@@ -44,6 +49,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   cloudSyncStatus = 'synced',
   profiles = [],
   sessionUser = null,
+  observationWindow = '6-Month Audit',
+  onSelectObservationWindow,
+  onOpenSearch,
   onOpenAuth,
   onSignOut,
   onSelectProfile,
@@ -54,13 +62,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenLanding,
 }) => {
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
-  const switcherRef = useRef<HTMLDivElement>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-  // Close dropdown on outside click
+  const switcherRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (switcherRef.current && !switcherRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (switcherRef.current && !switcherRef.current.contains(target)) {
         setIsSwitcherOpen(false);
+      }
+      if (calendarRef.current && !calendarRef.current.contains(target)) {
+        setIsCalendarOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(target)) {
+        setIsNotificationsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -77,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="h-16 sm:h-18 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-3 sm:px-4 lg:px-8 flex items-center justify-between transition-colors max-w-full overflow-hidden">
+    <header className="h-16 sm:h-18 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-3 sm:px-4 lg:px-8 flex items-center justify-between transition-colors max-w-full overflow-visible">
       {/* Brand Logo */}
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         <div
@@ -98,14 +118,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Search Bar with ⌘K (matching Oripio/Modulix) */}
-        <div className="hidden xl:flex items-center gap-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl px-3.5 py-2 w-72 transition text-xs text-slate-400">
-          <Search className="w-4 h-4 text-slate-400" />
-          <span className="flex-1 text-slate-500">Search metrics, records...</span>
+        {/* Interactive Search Bar with ⌘K */}
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="hidden xl:flex items-center gap-2 bg-slate-50 hover:bg-slate-100/90 border border-slate-200/80 rounded-2xl px-3.5 py-2 w-72 transition text-xs text-slate-400 cursor-pointer shadow-2xs"
+          title="Search verified evidence, metrics, or views (Ctrl+K or ⌘K)"
+        >
+          <Search className="w-4 h-4 text-slate-400 shrink-0" />
+          <span className="flex-1 text-slate-500 text-left truncate">Search metrics, records...</span>
           <kbd className="bg-white border border-slate-200 text-slate-400 font-mono text-[10px] px-1.5 py-0.5 rounded-md shadow-2xs">
             ⌘K
           </kbd>
-        </div>
+        </button>
       </div>
 
       {/* Center/Right Context Items */}
@@ -130,10 +155,44 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Date Selector Pill */}
-        <div className="hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200/80 text-slate-600 px-3.5 py-1.5 rounded-2xl text-xs font-medium">
-          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-          <span>Sat, 12 Sep 2026</span>
+        {/* Interactive Observation Window / Date Selector Pill */}
+        <div className="relative hidden lg:block" ref={calendarRef}>
+          <button
+            onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+            className="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 px-3 py-1.5 rounded-2xl text-xs font-semibold transition cursor-pointer"
+            title="Select evidence observation window"
+          >
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <span>{observationWindow}</span>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+
+          {isCalendarOpen && (
+            <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
+              <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
+                Observation Window
+              </div>
+              {[
+                { id: '3-Month Window', label: '3-Month Recent (Jun–Aug 2026)' },
+                { id: '6-Month Audit', label: '6-Month Full Audit (Mar–Aug 2026)' },
+                { id: 'All Active Records', label: 'All Consented History' },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => {
+                    onSelectObservationWindow?.(opt.id);
+                    setIsCalendarOpen(false);
+                  }}
+                  className={`w-full px-3 py-2 text-left flex items-center justify-between hover:bg-slate-50 transition ${
+                    observationWindow === opt.id ? 'font-bold text-emerald-800 bg-emerald-50/50' : 'text-slate-700'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {observationWindow === opt.id && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Live Score Pill */}
@@ -216,7 +275,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="max-h-56 overflow-y-auto py-1">
                 {profiles.map((p) => {
                   const isActive = p.id === profile.id;
-                  const isAma = p.id === 'usr_ama_mensah_01';
+                  const isBenchmark = p.id === 'usr_ama_mensah_01';
                   return (
                     <button
                       key={p.id}
@@ -224,14 +283,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onSelectProfile?.(p.id);
                         setIsSwitcherOpen(false);
                       }}
-                      className={`w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition ${
+                      className={`w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition cursor-pointer ${
                         isActive ? 'bg-emerald-50/60 font-bold' : ''
                       }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
                         <div
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 ${
-                            isAma ? 'bg-emerald-600' : 'bg-slate-700'
+                            isBenchmark ? 'bg-emerald-600' : 'bg-slate-700'
                           }`}
                         >
                           {getInitials(p.name)}
@@ -239,7 +298,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <div className="truncate">
                           <div className="text-slate-900 font-bold truncate flex items-center gap-1.5">
                             <span>{p.name}</span>
-                            {isAma && (
+                            {isBenchmark && (
                               <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
                                 Benchmark
                               </span>
@@ -313,25 +372,106 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* Quick Action: Export / View Passport (Accessible via BottomNav on mobile) */}
+        {/* Quick Action: Export / View Passport */}
         <button
           onClick={onOpenPassport}
-          className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-2xl transition shadow-sm active:scale-95"
+          className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-2xl transition shadow-sm active:scale-95 cursor-pointer"
         >
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Passport</span>
           <ExternalLink className="w-3 h-3 opacity-60 ml-0.5" />
         </button>
 
-        {/* Notification Bell Icon */}
-        <button
-          onClick={onResetDemo}
-          title="Reset to Ama Mensah baseline state"
-          className="hidden sm:inline-flex p-2 rounded-2xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition relative"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="w-2 h-2 rounded-full bg-emerald-500 absolute top-2 right-2 ring-2 ring-white" />
-        </button>
+        {/* Notification Bell Center */}
+        <div className="relative" ref={notificationsRef}>
+          <button
+            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+            title="Audit and activity verification center"
+            className="p-2 rounded-2xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition relative cursor-pointer"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500 absolute top-2 right-2 ring-2 ring-white" />
+          </button>
+
+          {isNotificationsOpen && (
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200/90 p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="font-bold text-slate-900">Verification & Activity Feed</span>
+                </div>
+                <button
+                  onClick={() => setIsNotificationsOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                {/* Notification Item 1: Live Engine */}
+                <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
+                  <div className="flex items-center justify-between font-bold text-emerald-950 mb-1">
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Readiness Engine Active</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-mono">
+                      {score}/1000
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-800/80">
+                    Live deterministic score evaluating {profile.name}&apos;s profile across all 6 verified indicators ({readinessBand}).
+                  </p>
+                </div>
+
+                {/* Notification Item 2: Cloud Sync */}
+                <div className="p-3 bg-slate-50 border border-slate-200/70 rounded-2xl">
+                  <div className="flex items-center justify-between font-semibold text-slate-800 mb-1">
+                    <span className="flex items-center gap-1.5">
+                      <Database className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Supabase Sync Status</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500">Just now</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    {cloudSyncStatus === 'synced'
+                      ? 'Bi-directional cloud sync active. Local state persisted.'
+                      : 'Working in offline cache mode with local persistence.'}
+                  </p>
+                </div>
+
+                {/* Notification Item 3: Active Profile */}
+                <div className="p-3 bg-slate-50 border border-slate-200/70 rounded-2xl">
+                  <div className="flex items-center justify-between font-semibold text-slate-800 mb-1">
+                    <span className="flex items-center gap-1.5">
+                      <Building className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Active Workspace</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500 truncate max-w-[100px]">{profile.businessName}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Capital goal set to {profile.currency} {profile.capitalGoalAmount.toLocaleString()} ({profile.capitalGoalPurpose}).
+                  </p>
+                </div>
+              </div>
+
+              {/* Reset to Ama Mensah demo baseline */}
+              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setIsNotificationsOpen(false);
+                    onResetDemo();
+                  }}
+                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold rounded-xl transition flex items-center justify-center gap-1.5 text-xs cursor-pointer border border-slate-200/80"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Reset to Ama Mensah Baseline</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

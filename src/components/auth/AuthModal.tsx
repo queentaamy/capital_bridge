@@ -204,31 +204,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-hidden sm:p-4">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl border-t sm:border border-slate-200/90 flex flex-col max-h-[94dvh] sm:max-h-[88vh] overflow-hidden relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 my-0 sm:my-auto">
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 p-6 text-white relative">
+        <div className="shrink-0 bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 p-4 sm:p-6 text-white relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition cursor-pointer"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-white text-sm shadow-inner">
+          <div className="flex items-center gap-2.5 mb-1.5 sm:mb-2">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-white text-xs sm:text-sm shadow-inner">
               CB
             </div>
             <div>
-              <h2 className="text-lg font-black tracking-tight text-white">CapitalBridge</h2>
-              <p className="text-[11px] text-emerald-100 font-medium">
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-white">CapitalBridge</h2>
+              <p className="text-[10px] sm:text-[11px] text-emerald-100 font-medium">
                 Financial Readiness Infrastructure
               </p>
             </div>
           </div>
 
-          <p className="text-xs text-emerald-50/90 mt-1">
+          <p className="text-[11px] sm:text-xs text-emerald-50/90 mt-0.5 sm:mt-1">
             {mode === 'signin'
               ? 'Sign in to access your financial evidence, score, and passport.'
               : 'Create an account to prove your financial readiness for institutional capital.'}
@@ -236,7 +236,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-slate-200 bg-slate-50/80 p-1">
+        <div className="shrink-0 flex border-b border-slate-200 bg-slate-50/80 p-1">
           <button
             type="button"
             onClick={() => {
@@ -244,7 +244,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               setErrorMsg(null);
               setShowPassword(false);
             }}
-            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 py-2 sm:py-2.5 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer ${
               mode === 'signin'
                 ? 'bg-white text-emerald-800 shadow-xs border border-slate-200/60'
                 : 'text-slate-500 hover:text-slate-900'
@@ -260,7 +260,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               setErrorMsg(null);
               setShowPassword(false);
             }}
-            className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 py-2 sm:py-2.5 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer ${
               mode === 'signup'
                 ? 'bg-white text-emerald-800 shadow-xs border border-slate-200/60'
                 : 'text-slate-500 hover:text-slate-900'
@@ -271,8 +271,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </div>
 
-        {/* Form Body */}
-        <div className="p-6 space-y-4">
+        {/* Form Body (Internally Scrollable) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 sm:space-y-4 overscroll-contain">
           {/* Error Banner */}
           {errorMsg && (
             <div

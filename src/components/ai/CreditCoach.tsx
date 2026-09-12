@@ -29,6 +29,8 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
   onNavigateToPassport,
   onNavigateToActions,
 }) => {
+  const isAmaBenchmark = profile.id === 'usr_ama_mensah_01';
+
   const initialMessages: ChatMessage[] = [
     {
       id: 'msg_0',
@@ -36,9 +38,9 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
       text: `Hello ${profile.name.split(' ')[0]}! I am your CapitalBridge Readiness Coach. I review your verified financial records and explain exactly what your evidence says, what is holding you back from your ${profile.currency} ${profile.capitalGoalAmount.toLocaleString()} goal, and what concrete steps will strengthen your profile.`,
       timestamp: 'Just now',
       suggestedPrompts: [
-        'Why is my readiness score 742?',
+        `Why is my readiness score ${assessment.overallScore}?`,
         'What is holding my profile back most?',
-        'What should I improve first to reach 800?',
+        `What should I improve first to reach ${assessment.overallScore >= 800 ? '850' : '800'}?`,
         'Explain my Financial Passport in simple terms',
       ],
     },
@@ -49,6 +51,24 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Sync messages when profile switches
+  useEffect(() => {
+    setMessages([
+      {
+        id: createMsgId('coach_init'),
+        sender: 'coach',
+        text: `Hello ${profile.name.split(' ')[0]}! I am your CapitalBridge Readiness Coach for ${profile.businessName}. Your current verified score is ${assessment.overallScore}/1000 (${assessment.readinessBand}) with ${assessment.eci.overall}% Evidence Confidence. Ask me anything about your readiness metrics or how to reach your ${profile.currency} ${profile.capitalGoalAmount.toLocaleString()} capital goal.`,
+        timestamp: 'Just now',
+        suggestedPrompts: [
+          `Why is my readiness score ${assessment.overallScore}?`,
+          'What is holding my profile back most?',
+          `What should I improve first to reach ${assessment.overallScore >= 800 ? '850' : '800'}?`,
+          'Explain my Financial Passport in simple terms',
+        ],
+      },
+    ]);
+  }, [profile.id]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
@@ -57,48 +77,84 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
   const generateGroundedResponse = (query: string): string => {
     const q = query.toLowerCase();
 
-    if (q.includes('why') && (q.includes('742') || q.includes('score'))) {
+    // Sort indicators from lowest to highest score to find true gap drivers
+    const sortedIndicators = (Object.keys(assessment.indicators) as Array<keyof typeof assessment.indicators>)
+      .map((k) => assessment.indicators[k])
+      .sort((a, b) => a.value - b.value);
+
+    const primaryGap = sortedIndicators[0];
+    const secondaryGap = sortedIndicators[1];
+    const topStrength = sortedIndicators[sortedIndicators.length - 1];
+
+    if (q.includes('why') && (q.includes('score') || q.includes(String(assessment.overallScore)) || q.includes('742'))) {
+      if (isAmaBenchmark && assessment.overallScore === 742) {
+        return (
+          `Your readiness score is ${assessment.overallScore}/1000 (${assessment.readinessBand}). ` +
+          `This is a deterministic weighted composite:\n\n` +
+          `• Strengths: Your Business Activity (${assessment.indicators.business_activity.value}/100), Income Consistency (${assessment.indicators.income_consistency.value}/100), and Susu Savings (${assessment.indicators.savings_behaviour.value}/100) are strong, contributing over 450 points.\n\n` +
+          `• Gaps: Your score is primarily constrained by Documentation Completeness (${assessment.indicators.documentation_completeness.value}/100) because you currently only have 3 months of sales ledgers instead of 6, and Cash-flow Stability (${assessment.indicators.cashflow_stability.value}/100) due to first-week supplier payment dips.`
+        );
+      }
+
       return (
         `Your readiness score is ${assessment.overallScore}/1000 (${assessment.readinessBand}). ` +
-        `This is a deterministic weighted composite:\n\n` +
-        `• Strengths: Your Business Activity (${assessment.indicators.business_activity.value}/100), Income Consistency (${assessment.indicators.income_consistency.value}/100), and Susu Savings (${assessment.indicators.savings_behaviour.value}/100) are strong, contributing over 450 points.\n\n` +
-        `• Gaps: Your score is primarily constrained by Documentation Completeness (${assessment.indicators.documentation_completeness.value}/100) because you currently only have 3 months of sales ledgers instead of 6, and Cash-flow Stability (${assessment.indicators.cashflow_stability.value}/100) due to first-week supplier payment dips.`
+        `This deterministic score is calculated directly from your consented evidence records:\n\n` +
+        `• Primary Strength: ${topStrength.label} (${topStrength.value}/100) earned ${topStrength.pointsEarned} points.\n` +
+        `• Key Gaps: ${primaryGap.label} is currently at ${primaryGap.value}/100 (${primaryGap.gapSummary}) and ${secondaryGap.label} is at ${secondaryGap.value}/100.\n\n` +
+        `Strengthening ${primaryGap.label} is the fastest way to increase your capital qualification.`
       );
     }
 
     if (q.includes('holding') || q.includes('gap') || q.includes('weakness')) {
+      if (isAmaBenchmark && assessment.overallScore === 742) {
+        return (
+          `The two primary factors holding your profile back from reaching Prime Ready (800+) are:\n\n` +
+          `1. Documentation Blind Spot: Missing 3 months of daily business books (March - May 2026). This caps your documentation score at 53/100.\n` +
+          `2. Expense Volatility: Paying bulk food suppliers in single lump sums creates brief negative weekly cash dips, dragging cash-flow stability to 64/100.\n\n` +
+          `Resolving these two items can add +70 points to your readiness score.`
+        );
+      }
+
       return (
-        `The two primary factors holding your profile back from reaching Prime Ready (800+) are:\n\n` +
-        `1. Documentation Blind Spot: Missing 3 months of daily business books (March - May 2026). This caps your documentation score at 53/100.\n` +
-        `2. Expense Volatility: Paying bulk food suppliers in single lump sums creates brief negative weekly cash dips, dragging cash-flow stability to 64/100.\n\n` +
-        `Resolving these two items can add +70 points to your readiness score.`
+        `The primary factors currently limiting ${profile.businessName} from reaching a higher readiness tier are:\n\n` +
+        `1. ${primaryGap.label} (${primaryGap.value}/100): ${primaryGap.gapSummary}\n` +
+        `2. ${secondaryGap.label} (${secondaryGap.value}/100): ${secondaryGap.gapSummary}\n\n` +
+        `Targeting ${primaryGap.label} will produce the highest immediate lift in your readiness baseline.`
       );
     }
 
-    if (q.includes('improve first') || q.includes('800') || q.includes('action')) {
+    if (q.includes('improve first') || q.includes('800') || q.includes('action') || q.includes('priority')) {
+      if (isAmaBenchmark && assessment.overallScore === 742) {
+        return (
+          `Priority #1 Recommendation:\n` +
+          `Upload or reconstruct your missing 3 months of daily sales ledgers (March - May 2026).\n\n` +
+          `Why this first? It provides the highest ROI: it increases Documentation Completeness from 53 to 85, adding +48 points instantly and raising your Evidence Confidence Index (ECI) to 94%. You can test this exact change in the What-If Simulator right now!`
+        );
+      }
+
       return (
-        `Priority #1 Recommendation:\n` +
-        `Upload or reconstruct your missing 3 months of daily sales ledgers (March - May 2026).\n\n` +
-        `Why this first? It provides the highest ROI: it increases Documentation Completeness from 53 to 85, adding +48 points instantly and raising your Evidence Confidence Index (ECI) to 94%. You can test this exact change in the What-If Simulator right now!`
+        `Priority #1 Recommendation for ${profile.name}:\n` +
+        `${primaryGap.recommendations[0]}\n\n` +
+        `Why this first? Addressing ${primaryGap.label} targets your lowest indicator (${primaryGap.value}/100) and offers the maximum potential point gain toward your ${profile.currency} ${profile.capitalGoalAmount.toLocaleString()} capital goal.`
       );
     }
 
     if (q.includes('passport') || q.includes('explain my')) {
       return (
         `Your Financial Passport packages your verified evidence into a tamper-evident summary that financial institutions can trust. Instead of exposing your private transaction details or bank login, it proves: ` +
-        `(1) You generate regular turnover in Makola Market, (2) You maintain flawless Susu savings discipline, and (3) Your Evidence Confidence is ${assessment.eci.overall}%. It translates your hard work into an institutional-grade story.`
+        `(1) You generate regular turnover in ${profile.businessLocation || 'Ghana'}, (2) You maintain disciplined financial habits, and (3) Your Evidence Confidence is ${assessment.eci.overall}%. It translates your business activity into an institutional-grade story.`
       );
     }
 
     if (q.includes('what if') || q.includes('3 months') || q.includes('scenario')) {
       return (
-        `Adding 3 months of business ledgers deterministically raises your score from 742 to 790 (+48 points) and pushes your Evidence Confidence from 86% to 94%. This moves you to the top tier of Capital Ready, giving microfinance partners high certainty in approving your GH₵8,000 inventory request.`
+        `In the What-If Simulator, you can test how adding business ledgers, clearing debt, or smoothing cash outlays deterministically impacts your score (${assessment.overallScore}/1000). For example, adding documented bookkeeping records raises Evidence Confidence toward 94%, giving financing partners higher certainty in approving your ${profile.currency} ${profile.capitalGoalAmount.toLocaleString()} facility.`
       );
     }
 
     return (
       `Based on your verified assessment (${assessment.overallScore}/1000, Evidence Confidence: ${assessment.eci.overall}%):\n\n` +
-      `Your core financial activity is healthy. Focus on closing the documentation gap (adding missing sales ledgers) and maintaining your weekly GH₵300 Susu deposits. Let me know if you would like me to explain any specific indicator or simulate a scenario!`
+      `Your core financial activity for ${profile.businessName} is evaluated deterministically. Focus on closing ${primaryGap.label} (${primaryGap.value}/100) to maximize your capital readiness. Let me know if you would like me to explain any specific indicator or simulate a scenario!`
     );
   };
 

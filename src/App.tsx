@@ -14,6 +14,7 @@ import { FinancialPassportView } from './components/passport/FinancialPassportVi
 import { LenderView } from './components/lender/LenderView';
 import { ProfileDrawer } from './components/ui/ProfileDrawer';
 import { TurnoverChart } from './components/dashboard/TurnoverChart';
+import { SearchPalette } from './components/layout/SearchPalette';
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
 import { AuthModal } from './components/auth/AuthModal';
 import { LandingHero } from './components/landing/LandingHero';
@@ -27,6 +28,7 @@ import {
   SEEDED_FINANCIAL_PASSPORT,
 } from './data/seedData';
 import { calculateAssessment } from './services/assessmentEngine';
+import { runWhatIfScenario, type ScenarioAdjustmentParams } from './services/scenarioEngine';
 import type {
   EvidenceRecord,
   ImprovementAction,
@@ -51,7 +53,6 @@ import {
   ArrowUpRight,
   Filter,
 } from 'lucide-react';
-import type { ScenarioAdjustmentParams } from './services/scenarioEngine';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
@@ -61,6 +62,9 @@ export function App() {
   const [sessionUser, setSessionUser] = useState<{ id: string; email: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [observationWindow, setObservationWindow] = useState('6-Month Audit');
+  const [tableCategoryFilter, setTableCategoryFilter] = useState<string>('all');
 
   // Controls whether the visitor sees the landing / intro screen first
   const [showLanding, setShowLanding] = useState<boolean>(() => {
@@ -218,7 +222,46 @@ export function App() {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // Construct dynamic financial passport reflecting active profile
+  // Global keyboard shortcut to open Search & Action Palette (⌘K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Dynamically compute monthly commercial turnover from verified records
+  const monthlyTurnover = useMemo(() => {
+    const bizRecord = records.find((r) => r.isActive && r.category === 'business');
+    if (bizRecord && bizRecord.totalInflow) {
+      return Math.round(bizRecord.totalInflow / 3);
+    }
+    const commercialRecords = records.filter(
+      (r) => r.isActive && (r.category === 'transactions' || r.category === 'business')
+    );
+    if (commercialRecords.length === 0) return 0;
+    const totalInflow = commercialRecords.reduce(
+      (sum, r) => sum + (r.totalInflow ?? r.balance ?? 0),
+      0
+    );
+    return Math.round(totalInflow / 6);
+  }, [records]);
+
+  // Dynamically compute simulator preview lift for dashboard teaser
+  const simLift = useMemo(() => {
+    return runWhatIfScenario(profile.id, records, {
+      addBusinessRecordsMonths: 3,
+      reduceMonthlyDebtAmount: 0,
+      smoothExpenseVolatility: false,
+      maintainSavingsWeeks: 0,
+    });
+  }, [profile.id, records]);
+
+  // Construct dynamic financial passport reflecting active profile & live assessment
   const currentPassport: FinancialPassport = useMemo(() => {
     const isAma = profile.id === AMA_PROFILE.id;
     return {
@@ -231,6 +274,7 @@ export function App() {
       userName: profile.name,
       businessName: profile.businessName,
       businessType: profile.businessType,
+      businessLocation: profile.businessLocation,
       capitalGoal: {
         amount: profile.capitalGoalAmount,
         currency: profile.currency,
@@ -243,8 +287,21 @@ export function App() {
       verificationHash: isAma
         ? SEEDED_FINANCIAL_PASSPORT.verificationHash
         : `sha256-gh2026-${profile.id.slice(-6)}-${assessment.overallScore}`,
+      keyIndicators: Object.values(assessment.indicators).map((ind) => ({
+        label: ind.label,
+        value: ind.value,
+        level: ind.level,
+      })),
+      verifiedEvidenceSummary: records
+        .filter((r) => r.isActive)
+        .map((r) => ({
+          category: r.category.toUpperCase(),
+          source: r.sourceName,
+          monthsCovered: 6,
+          verified: r.status === 'consented_verified',
+        })),
     };
-  }, [profile, assessment]);
+  }, [profile, assessment, records]);
 
   // Handle switching active profile
   const handleSelectProfile = (newId: string) => {
@@ -312,16 +369,35 @@ export function App() {
       id: `ev_${Date.now()}`,
       isActive: true,
     };
-    setRecords((prev) => [created, ...prev]);
+    setRecords((prev) => {
+      const updated = [created, ...prev];
+      ProfileManager.saveRecordsForProfile(profile.id, updated);
+      return updated;
+    });
     SupabaseService.insertEvidenceRecord(created, profile.id).catch(() => {});
     setNotification(`Evidence "${newRecord.title}" successfully added!`);
     setTimeout(() => setNotification(null), 3500);
   };
 
+  // Handle deleting custom or simulated evidence
+  const handleDeleteRecord = (recordId: string) => {
+    setRecords((prev) => {
+      const updated = prev.filter((r) => r.id !== recordId);
+      ProfileManager.saveRecordsForProfile(profile.id, updated);
+      return updated;
+    });
+    SupabaseService.deleteEvidenceRecord(recordId).catch(() => {});
+    setNotification('Evidence record removed.');
+    setTimeout(() => setNotification(null), 3000);
+  };
+
   // Handle applying a simulated scenario directly to active state
   const handleApplyScenario = (params: ScenarioAdjustmentParams) => {
+    let nextRecords = [...records];
+    let nextActions = [...actions];
+
     if (params.addBusinessRecordsMonths > 0) {
-      const exists = records.some((r) => r.id === 'ev_sim_books_01');
+      const exists = nextRecords.some((r) => r.id === 'ev_sim_books_01');
       if (!exists) {
         const simulatedBook: EvidenceRecord = {
           id: 'ev_sim_books_01',
@@ -338,23 +414,22 @@ export function App() {
           notes: 'Reconstructed 3 months of daily trading ledgers to close documentation gap.',
           isActive: true,
         };
-        setRecords((prev) => [simulatedBook, ...prev]);
+        nextRecords = [simulatedBook, ...nextRecords];
       }
-      setActions((prev) =>
-        prev.map((a) => (a.id === 'act_01' ? { ...a, status: 'completed' } : a))
-      );
+      nextActions = nextActions.map((a) => (a.id === 'act_01' ? { ...a, status: 'completed' } : a));
     }
 
     if (params.reduceMonthlyDebtAmount >= 500) {
-      setRecords((prev) =>
-        prev.map((r) =>
-          r.category === 'obligations' ? { ...r, isActive: false } : r
-        )
+      nextRecords = nextRecords.map((r) =>
+        r.category === 'obligations' ? { ...r, isActive: false } : r
       );
-      setActions((prev) =>
-        prev.map((a) => (a.id === 'act_03' ? { ...a, status: 'completed' } : a))
-      );
+      nextActions = nextActions.map((a) => (a.id === 'act_03' ? { ...a, status: 'completed' } : a));
     }
+
+    setRecords(nextRecords);
+    setActions(nextActions);
+    ProfileManager.saveRecordsForProfile(profile.id, nextRecords);
+    ProfileManager.saveActionsForProfile(profile.id, nextActions);
 
     setNotification(
       'Simulated improvements applied to active profile! Your Readiness Score has updated.'
@@ -365,10 +440,10 @@ export function App() {
 
   // Handle action plan status toggle
   const handleToggleActionStatus = (actionId: string) => {
-    setActions((prev) =>
-      prev.map((a) => {
+    setActions((prev) => {
+      const updated = prev.map((a): ImprovementAction => {
         if (a.id !== actionId) return a;
-        const nextStatus =
+        const nextStatus: ImprovementAction['status'] =
           a.status === 'not_started'
             ? 'in_progress'
             : a.status === 'in_progress'
@@ -376,8 +451,10 @@ export function App() {
             : 'not_started';
         SupabaseService.updateActionStatus(actionId, nextStatus).catch(() => {});
         return { ...a, status: nextStatus };
-      })
-    );
+      });
+      ProfileManager.saveActionsForProfile(profile.id, updated);
+      return updated;
+    });
   };
 
   // Reset to Ama Mensah baseline
@@ -483,6 +560,9 @@ export function App() {
         onOpenPassport={() => setCurrentTab('passport')}
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenLanding={() => setShowLanding(true)}
+        onOpenSearch={() => setIsSearchOpen(true)}
+        observationWindow={observationWindow}
+        onSelectObservationWindow={setObservationWindow}
       />
 
       <div className="flex-1 flex w-full max-w-[1600px] mx-auto">
@@ -550,7 +630,7 @@ export function App() {
                     </span>
                   </div>
                   <div className="text-2xl sm:text-3xl font-black text-slate-900 tabular-nums tracking-tight">
-                    GH₵ 9,800.00
+                    {profile.currency} {monthlyTurnover.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </div>
                   <div className="flex items-center gap-1.5 mt-2 text-xs">
                     <span className="inline-flex items-center gap-0.5 text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[11px]">
@@ -577,7 +657,9 @@ export function App() {
                     <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[11px]">
                       {assessment.readinessBand}
                     </span>
-                    <span className="text-slate-400">Tier 2 Ready</span>
+                    <span className="text-slate-400">
+                      {assessment.overallScore >= 700 ? 'Tier 2 Ready' : 'Under Review'}
+                    </span>
                   </div>
                 </div>
 
@@ -590,11 +672,11 @@ export function App() {
                     </span>
                   </div>
                   <div className="text-2xl sm:text-3xl font-black text-slate-900 tabular-nums tracking-tight">
-                    GH₵ {profile.capitalGoalAmount.toLocaleString()}
+                    {profile.currency} {profile.capitalGoalAmount.toLocaleString()}
                   </div>
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500 truncate font-medium">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                    <span className="truncate">Bulk Palm Oil Inventory Advance</span>
+                    <span className="truncate">{profile.capitalGoalPurpose}</span>
                   </div>
                 </div>
 
@@ -621,7 +703,11 @@ export function App() {
               {/* Chart & Live Gauge Section (Matching Oripio & Quixotic) */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <TurnoverChart />
+                  <TurnoverChart
+                    records={records}
+                    currency={profile.currency}
+                    profile={profile}
+                  />
                 </div>
                 <div className="lg:col-span-1">
                   <ReadinessGauge
@@ -678,7 +764,7 @@ export function App() {
                         Test +3 Months Books
                       </h4>
                       <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                        See how adding missing sales logs deterministically lifts your score from 742 to 790 (+48 pts).
+                        See how adding missing sales logs deterministically lifts your score from {assessment.overallScore} to {simLift.scenarioScore} (+{simLift.scoreDelta} pts).
                       </p>
                     </div>
                     <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700">
@@ -749,18 +835,26 @@ export function App() {
                       Recent Verified Financial Evidence
                     </h3>
                     <p className="text-xs text-slate-500 font-medium">
-                      Consent-granted records contributing to your live 742 readiness score.
+                      Consent-granted records contributing to your live {assessment.overallScore} readiness score.
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentTab('evidence')}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition"
-                    >
-                      <Filter className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Filter Category</span>
-                    </button>
+                    <div className="relative">
+                      <select
+                        value={tableCategoryFilter}
+                        onChange={(e) => setTableCategoryFilter(e.target.value)}
+                        className="text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 pl-3 pr-8 py-1.5 rounded-xl transition cursor-pointer appearance-none"
+                      >
+                        <option value="all">All Categories</option>
+                        <option value="transactions">Transactions</option>
+                        <option value="savings">Savings</option>
+                        <option value="business">Business</option>
+                        <option value="obligations">Obligations</option>
+                        <option value="statutory">Statutory</option>
+                      </select>
+                      <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                     <button
                       onClick={() => setCurrentTab('evidence')}
                       className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition"
@@ -782,31 +876,40 @@ export function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {records.slice(0, 5).map((rec) => (
-                        <tr key={rec.id} className="hover:bg-slate-50/50 transition">
-                          <td className="py-3.5 px-4">
-                            <div className="font-bold text-slate-900">{rec.title}</div>
-                            <div className="text-[11px] text-slate-400 font-medium">{rec.sourceName}</div>
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-600 font-medium">
-                            {rec.dateRange.start} → {rec.dateRange.end}
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-slate-900 tabular-nums">
-                            GH₵ {((rec.totalInflow ?? rec.balance) ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="font-mono text-[11px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
-                              {rec.traceabilityHash?.slice(0, 14)}...
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
-                              <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                              <span>Verified</span>
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {records
+                        .filter((r) => tableCategoryFilter === 'all' || r.category === tableCategoryFilter)
+                        .slice(0, 5)
+                        .map((rec) => (
+                          <tr key={rec.id} className="hover:bg-slate-50/50 transition">
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-slate-900">{rec.title}</div>
+                              <div className="text-[11px] text-slate-400 font-medium">{rec.sourceName}</div>
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-600 font-medium">
+                              {rec.dateRange.start} → {rec.dateRange.end}
+                            </td>
+                            <td className="py-3.5 px-4 font-bold text-slate-900 tabular-nums">
+                              {profile.currency} {((rec.totalInflow ?? rec.balance) ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-mono text-[11px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                                {rec.traceabilityHash?.slice(0, 14)}...
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              {rec.isActive ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
+                                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                  <span>Verified</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                                  <span>Excluded</span>
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
@@ -820,6 +923,7 @@ export function App() {
               records={records}
               onToggleRecord={handleToggleRecord}
               onAddRecord={handleAddRecord}
+              onDeleteRecord={handleDeleteRecord}
             />
           )}
 
@@ -851,6 +955,7 @@ export function App() {
               profileId={profile.id}
               records={records}
               onApplyScenario={handleApplyScenario}
+              profile={profile}
             />
           )}
 
@@ -914,6 +1019,8 @@ export function App() {
           setIsProfileOpen(false);
           setIsOnboardingOpen(true);
         }}
+        records={records}
+        onToggleRecord={handleToggleRecord}
       />
 
       {/* Onboarding Wizard Modal */}
@@ -938,6 +1045,15 @@ export function App() {
           setNotification('Switched to Ama Mensah demo profile.');
           setTimeout(() => setNotification(null), 3000);
         }}
+      />
+
+      {/* ⌘K / Ctrl+K Search and Action Command Palette */}
+      <SearchPalette
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        records={records}
+        actions={actions}
+        onSelectTab={setCurrentTab}
       />
     </div>
   );

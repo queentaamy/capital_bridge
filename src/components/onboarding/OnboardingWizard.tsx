@@ -174,10 +174,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   const isStep2Valid = capitalGoalAmount > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-      <div className="bg-white border border-slate-200/80 rounded-3xl w-full max-w-2xl text-slate-800 shadow-2xl overflow-hidden my-6">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-hidden sm:p-4">
+      <div className="bg-white border-t sm:border border-slate-200/90 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl text-slate-800 shadow-2xl flex flex-col max-h-[94dvh] sm:max-h-[88vh] overflow-hidden my-0 sm:my-auto animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200">
         {/* Header Bar */}
-        <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-200/70 flex items-center justify-between">
+        <div className="shrink-0 bg-slate-50/90 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200/70 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black text-sm shadow-xs">
               CB
@@ -194,7 +194,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 transition"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 transition cursor-pointer"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -202,8 +202,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
         </div>
 
         {/* Step Progress Pills */}
-        <div className="px-6 pt-4 pb-2">
-          <div className="grid grid-cols-4 gap-2">
+        <div className="shrink-0 px-4 sm:px-6 pt-3 pb-2.5 bg-white border-b border-slate-100 sm:border-b-0">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {[
               { num: 1, label: 'Enterprise' },
               { num: 2, label: 'Capital Target' },
@@ -212,7 +212,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
             ].map((s) => (
               <div
                 key={s.num}
-                className={`flex items-center gap-2 py-1.5 px-2.5 rounded-xl text-xs font-bold transition ${
+                className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 py-1.5 px-2 sm:px-2.5 rounded-xl text-xs font-bold transition ${
                   step === s.num
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
                     : step > s.num
@@ -221,7 +221,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 }`}
               >
                 <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] shrink-0 ${
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] shrink-0 font-bold ${
                     step === s.num
                       ? 'bg-emerald-600 text-white'
                       : step > s.num
@@ -237,8 +237,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </div>
         </div>
 
-        {/* Modal Body / Step Content */}
-        <div className="p-6 space-y-5">
+        {/* Modal Body / Step Content (Internally Scrollable) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 overscroll-contain">
           {/* STEP 1: Personal & Enterprise Identity */}
           {step === 1 && (
             <div className="space-y-4 animate-in fade-in">
@@ -843,34 +843,15 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           )}
         </div>
 
-        {/* Modal Footer / Navigation Controls */}
-        <div className="bg-slate-50/80 px-6 py-4 border-t border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-3">
-          {step > 1 ? (
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-4 py-2.5 rounded-xl transition w-full sm:w-auto justify-center"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onSelectAmaBenchmark}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline text-center sm:text-left"
-            >
-              Explore Demo Profile (Ama Mensah • 742 PTS) &rarr;
-            </button>
-          )}
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+        {/* Modal Footer / Navigation Controls (Always Visible & Accessible) */}
+        <div className="shrink-0 bg-slate-50/95 backdrop-blur-md px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
+          <div className="w-full sm:w-auto order-1 sm:order-2 flex items-center gap-2">
             {step < 4 ? (
               <button
                 type="button"
                 disabled={step === 1 ? !isStep1Valid : !isStep2Valid}
                 onClick={handleNext}
-                className="inline-flex items-center justify-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl transition shadow-xs w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-5 py-2.5 sm:py-3 rounded-xl transition shadow-xs w-full sm:w-auto cursor-pointer active:scale-[0.99]"
               >
                 <span>Continue to Step {step + 1}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -879,10 +860,31 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
               <button
                 type="button"
                 onClick={handleFinish}
-                className="inline-flex items-center justify-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl transition shadow-md w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 sm:py-3 rounded-xl transition shadow-md w-full sm:w-auto cursor-pointer active:scale-[0.99]"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Launch My Dashboard</span>
+              </button>
+            )}
+          </div>
+
+          <div className="w-full sm:w-auto order-2 sm:order-1 flex justify-center sm:justify-start">
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-4 py-2 sm:py-2.5 rounded-xl transition w-full sm:w-auto justify-center cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onSelectAmaBenchmark}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline text-center py-1 sm:py-0 w-full sm:w-auto cursor-pointer"
+              >
+                Explore Demo Profile (Ama Mensah • 742 PTS) &rarr;
               </button>
             )}
           </div>

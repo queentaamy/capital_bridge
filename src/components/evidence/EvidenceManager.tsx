@@ -7,6 +7,7 @@ import {
   Hash,
   ArrowDownRight,
   ArrowUpRight,
+  Trash2,
 } from 'lucide-react';
 import type { EvidenceCategory, EvidenceRecord } from '../../types';
 
@@ -14,12 +15,14 @@ interface EvidenceManagerProps {
   records: EvidenceRecord[];
   onToggleRecord: (recordId: string) => void;
   onAddRecord: (newRecord: Omit<EvidenceRecord, 'id' | 'isActive'>) => void;
+  onDeleteRecord?: (recordId: string) => void;
 }
 
 export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
   records,
   onToggleRecord,
   onAddRecord,
+  onDeleteRecord,
 }) => {
   const [activeCategory, setActiveCategory] = useState<EvidenceCategory | 'all'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -134,17 +137,34 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
                   </div>
                 </div>
 
-                <button
-                  onClick={() => onToggleRecord(rec.id)}
-                  title={rec.isActive ? 'Disable record (simulate removal)' : 'Enable record'}
-                  className="p-1 text-slate-400 hover:text-slate-800 transition shrink-0"
-                >
-                  {rec.isActive ? (
-                    <ToggleRight className="w-6 h-6 text-emerald-600" />
-                  ) : (
-                    <ToggleLeft className="w-6 h-6 text-slate-300" />
-                  )}
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {onDeleteRecord &&
+                    rec.id !== 'ev_momo_01' &&
+                    rec.id !== 'ev_bank_01' &&
+                    rec.id !== 'ev_savings_01' &&
+                    rec.id !== 'ev_biz_01' &&
+                    rec.id !== 'ev_debt_01' &&
+                    rec.id !== 'ev_kyc_01' && (
+                      <button
+                        onClick={() => onDeleteRecord(rec.id)}
+                        title="Remove custom record"
+                        className="p-1 text-slate-300 hover:text-rose-600 transition cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  <button
+                    onClick={() => onToggleRecord(rec.id)}
+                    title={rec.isActive ? 'Disable record (simulate removal)' : 'Enable record'}
+                    className="p-1 text-slate-400 hover:text-slate-800 transition shrink-0 cursor-pointer"
+                  >
+                    {rec.isActive ? (
+                      <ToggleRight className="w-6 h-6 text-emerald-600" />
+                    ) : (
+                      <ToggleLeft className="w-6 h-6 text-slate-300" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Source & Date Range */}

@@ -146,6 +146,7 @@ export interface FinancialPassport {
   userName: string;
   businessName: string;
   businessType: string;
+  businessLocation?: string;
   capitalGoal: {
     amount: number;
     currency: string;

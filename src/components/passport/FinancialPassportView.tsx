@@ -181,7 +181,7 @@ export const FinancialPassportView: React.FC<FinancialPassportViewProps> = ({
           <div>
             <div className="text-[10px] uppercase font-bold text-slate-400">Enterprise</div>
             <div className="text-sm font-bold text-slate-900 mt-0.5">{passport.businessName}</div>
-            <div className="text-[11px] text-slate-500 font-medium">Makola Market, Accra</div>
+            <div className="text-[11px] text-slate-500 font-medium">{passport.businessLocation || 'Accra, Ghana'}</div>
           </div>
           <div>
             <div className="text-[10px] uppercase font-bold text-slate-400">Capital Target</div>
@@ -368,7 +368,7 @@ export const FinancialPassportView: React.FC<FinancialPassportViewProps> = ({
 
             <h3 className="text-base font-bold text-slate-900">Cryptographic Verification Proof</h3>
             <p className="text-xs text-slate-500 mt-1">
-              Tamper-evident verification token anchored to Ama Mensah's verified evidence snapshot.
+              Tamper-evident verification token anchored to {passport.userName}&apos;s verified evidence snapshot.
             </p>
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl my-4 text-left font-mono text-xs">

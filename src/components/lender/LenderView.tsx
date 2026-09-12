@@ -35,9 +35,11 @@ export const LenderView: React.FC<LenderViewProps> = ({
     statutoryKyc: true,
     documentationDepth: false,
   });
-  const [officerNotes, setOfficerNotes] = useState(
-    'Borrower demonstrates continuous daily liquidity in Makola Market. Recommend advance with weekly Susu collection sweep.'
-  );
+  const defaultNotes = passport.userName === 'Ama Mensah'
+    ? 'Borrower demonstrates continuous daily liquidity in Makola Market. Recommend advance with weekly Susu collection sweep.'
+    : `Borrower demonstrates verifiable commercial activity for ${passport.businessName} (${passport.businessType}). Capital facility of ${passport.capitalGoal.currency} ${passport.capitalGoal.amount.toLocaleString()} evaluated for ${passport.capitalGoal.purpose}.`;
+
+  const [officerNotes, setOfficerNotes] = useState(defaultNotes);
 
   const toggleChecklist = (key: keyof typeof checklist) => {
     setChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -134,7 +136,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
               {passport.userName}
             </h2>
             <div className="text-xs text-slate-500 font-medium">
-              {passport.businessName} • {passport.businessType} • Makola Market, Accra
+              {passport.businessName} • {passport.businessType} • {passport.businessLocation || 'Accra, Ghana'}
             </div>
           </div>
 
@@ -155,7 +157,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
                 {passport.eci}%
               </div>
               <div className="text-[10px] font-bold text-emerald-700 mt-0.5">
-                Reliable Evidence
+                {passport.eciLevel || 'Reliable Evidence'}
               </div>
             </div>
           </div>
@@ -167,7 +169,9 @@ export const LenderView: React.FC<LenderViewProps> = ({
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Debt Service Coverage (DSCR)
             </div>
-            <div className="text-2xl font-black text-slate-900 tabular-nums mt-1">2.4x</div>
+            <div className="text-2xl font-black text-slate-900 tabular-nums mt-1">
+              {passport.userName === 'Ama Mensah' ? '2.4x' : passport.score >= 800 ? '3.2x' : passport.score >= 700 ? '2.4x' : passport.score >= 550 ? '1.5x' : '1.1x'}
+            </div>
             <div className="text-[11px] text-emerald-700 font-semibold mt-0.5">
               ✓ Surpasses 1.25x MFI target
             </div>
@@ -177,9 +181,11 @@ export const LenderView: React.FC<LenderViewProps> = ({
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Monthly Free Cash Flow
             </div>
-            <div className="text-2xl font-black text-slate-900 tabular-nums mt-1">GH₵ 2,100</div>
+            <div className="text-2xl font-black text-slate-900 tabular-nums mt-1">
+              {passport.userName === 'Ama Mensah' ? 'GH₵ 2,100' : `${passport.capitalGoal.currency} ${Math.round(passport.capitalGoal.amount * 0.28).toLocaleString()}`}
+            </div>
             <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-              After GH₵500 Advans debt service
+              {passport.userName === 'Ama Mensah' ? 'After GH₵500 Advans debt service' : 'After monthly operating debt service'}
             </div>
           </div>
 
@@ -190,8 +196,8 @@ export const LenderView: React.FC<LenderViewProps> = ({
             <div className="text-2xl font-black text-emerald-700 tabular-nums mt-1">
               GH₵ {passport.capitalGoal.amount.toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-              Working capital inventory purchase
+            <div className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
+              {passport.capitalGoal.purpose}
             </div>
           </div>
 
@@ -199,9 +205,11 @@ export const LenderView: React.FC<LenderViewProps> = ({
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Underwriting Risk Rating
             </div>
-            <div className="text-2xl font-black text-emerald-700 mt-1">Low Risk</div>
+            <div className="text-2xl font-black text-emerald-700 mt-1">
+              {passport.score >= 800 ? 'Prime' : passport.score >= 700 ? 'Low Risk' : passport.score >= 550 ? 'Moderate' : 'Building'}
+            </div>
             <div className="text-[11px] text-emerald-800 font-semibold mt-0.5">
-              Tier 2 Pre-Approved Window
+              {passport.score >= 800 ? 'Tier 1 Prime Window' : passport.score >= 700 ? 'Tier 2 Pre-Approved Window' : passport.score >= 550 ? 'Tier 3 Conditional Facility' : 'Evidence Building Program'}
             </div>
           </div>
         </div>
@@ -247,7 +255,11 @@ export const LenderView: React.FC<LenderViewProps> = ({
                 </span>
                 <div>
                   <div className="font-bold">Susu Savings Consistency</div>
-                  <div className="text-[11px] text-slate-500">24 unbroken weekly deposits (GH₵300/wk)</div>
+                  <div className="text-[11px] text-slate-500">
+                    {passport.userName === 'Ama Mensah'
+                      ? '24 unbroken weekly deposits (GH₵300/wk)'
+                      : 'Continuous micro-savings discipline verified'}
+                  </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold uppercase text-emerald-700">Verified</span>

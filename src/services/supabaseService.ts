@@ -369,6 +369,21 @@ export class SupabaseService {
   }
 
   /**
+   * Deletes an evidence record by ID
+   */
+  static async deleteEvidenceRecord(recordId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('evidence_records')
+        .delete()
+        .eq('id', recordId);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Updates an improvement action's status
    */
   static async updateActionStatus(
