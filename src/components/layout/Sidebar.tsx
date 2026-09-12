@@ -13,6 +13,7 @@ import {
   UserPlus,
   LogIn,
   LogOut,
+  Compass,
 } from 'lucide-react';
 
 export type TabType =
@@ -35,6 +36,7 @@ interface SidebarProps {
   onSignOut?: () => void;
   onOpenProfile?: () => void;
   onOpenOnboarding?: () => void;
+  onOpenLanding?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -47,6 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSignOut,
   onOpenProfile,
   onOpenOnboarding,
+  onOpenLanding,
 }) => {
   const mainMenuItems: Array<{
     id: TabType;
@@ -190,6 +193,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <UserCheck className="w-4 h-4 text-emerald-600" />
                 <span>Profile & Consent</span>
+              </button>
+            )}
+
+            {onOpenLanding && (
+              <button
+                onClick={onOpenLanding}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition cursor-pointer"
+                title="Return to CapitalBridge Introduction"
+              >
+                <Compass className="w-4 h-4 text-emerald-600" />
+                <span>Product Intro</span>
               </button>
             )}
 

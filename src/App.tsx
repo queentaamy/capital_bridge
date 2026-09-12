@@ -16,6 +16,7 @@ import { ProfileDrawer } from './components/ui/ProfileDrawer';
 import { TurnoverChart } from './components/dashboard/TurnoverChart';
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
 import { AuthModal } from './components/auth/AuthModal';
+import { LandingHero } from './components/landing/LandingHero';
 import { SupabaseService } from './services/supabaseService';
 import { ProfileManager } from './services/profileManager';
 
@@ -60,6 +61,13 @@ export function App() {
   const [sessionUser, setSessionUser] = useState<{ id: string; email: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+
+  // Controls whether the visitor sees the landing / intro screen first
+  const [showLanding, setShowLanding] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const params = new URLSearchParams(window.location.search);
+    return !params.has('view') && !params.has('tab') && !params.has('skip_landing');
+  });
 
   // Active user profile
   const profile = useMemo(() => {
@@ -387,6 +395,68 @@ export function App() {
   const openTasksCount = actions.filter((a) => a.status !== 'completed').length;
   const activeRecordsCount = records.filter((r) => r.isActive).length;
 
+  // 0. LANDING HERO (INITIAL ENTRY VIEW)
+  if (showLanding) {
+    return (
+      <div className="min-h-screen bg-[#FBFBFA]">
+        {/* Floating System Notification Toast */}
+        {notification && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-emerald-500 animate-in fade-in slide-in-from-top-4 duration-300">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{notification}</span>
+          </div>
+        )}
+
+        <LandingHero
+          onStartDemo={() => {
+            handleSelectProfile(AMA_PROFILE.id);
+            setShowLanding(false);
+            setCurrentTab('dashboard');
+          }}
+          onBuildProfile={() => {
+            setIsOnboardingOpen(true);
+          }}
+          onSignIn={() => {
+            handleOpenAuth('signin');
+          }}
+          profiles={profiles}
+        />
+
+        {/* Onboarding Wizard Modal */}
+        <OnboardingWizard
+          isOpen={isOnboardingOpen}
+          onClose={() => setIsOnboardingOpen(false)}
+          onComplete={(data) => {
+            handleCompleteOnboarding(data);
+            setShowLanding(false);
+          }}
+          onSelectAmaBenchmark={() => {
+            setIsOnboardingOpen(false);
+            handleSelectProfile(AMA_PROFILE.id);
+            setShowLanding(false);
+          }}
+        />
+
+        {/* Supabase Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          initialMode={authModalMode}
+          onSuccess={(user, linkedProfile) => {
+            handleAuthSuccess(user, linkedProfile);
+            setShowLanding(false);
+          }}
+          onQuickDemoLogin={() => {
+            handleSelectProfile(AMA_PROFILE.id);
+            setShowLanding(false);
+            setNotification('Switched to Ama Mensah demo profile.');
+            setTimeout(() => setNotification(null), 3000);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans antialiased pb-16 lg:pb-0 relative">
       {/* Floating System Notification Toast */}
@@ -412,6 +482,7 @@ export function App() {
         onResetDemo={handleResetDemo}
         onOpenPassport={() => setCurrentTab('passport')}
         onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenLanding={() => setShowLanding(true)}
       />
 
       <div className="flex-1 flex w-full max-w-[1600px] mx-auto">
@@ -426,6 +497,7 @@ export function App() {
           onSignOut={handleSignOut}
           onOpenProfile={() => setIsProfileOpen(true)}
           onOpenOnboarding={() => setIsOnboardingOpen(true)}
+          onOpenLanding={() => setShowLanding(true)}
         />
 
         {/* Main Content Area */}
