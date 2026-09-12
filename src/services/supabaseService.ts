@@ -226,6 +226,33 @@ export class SupabaseService {
   }
 
   /**
+   * Fetches only user profiles matching an email address, isolating user accounts
+   */
+  static async fetchProfilesForEmail(email?: string | null): Promise<UserProfile[]> {
+    if (!email) {
+      return [AMA_PROFILE];
+    }
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        return [AMA_PROFILE];
+      }
+      const profiles = data.map((row: any) => mapProfileFromRow(row as ProfileRow));
+      if (!profiles.some((p) => p.id === AMA_PROFILE.id)) {
+        profiles.push(AMA_PROFILE);
+      }
+      return profiles;
+    } catch {
+      return [AMA_PROFILE];
+    }
+  }
+
+  /**
    * Creates and persists a new user profile in Supabase
    */
   static async createProfile(profile: UserProfile): Promise<boolean> {

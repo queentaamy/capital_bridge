@@ -12,6 +12,9 @@ import {
   LogOut,
   RotateCcw,
   X,
+  Menu,
+  PanelLeft,
+  PanelLeftClose,
 } from 'lucide-react';
 import type { UserProfile, ReadinessBand } from '../../types';
 
@@ -24,6 +27,10 @@ export interface NavbarProps {
   cloudSyncStatus: CloudSyncStatus;
   profiles: UserProfile[];
   sessionUser?: { id: string; email: string } | null;
+  isSidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
+  isMobileMenuOpen?: boolean;
+  onToggleMobileMenu?: () => void;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
   onSignOut?: () => void;
   onSelectProfile?: (profileId: string) => void;
@@ -44,6 +51,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   cloudSyncStatus,
   profiles,
   sessionUser = null,
+  isSidebarCollapsed = false,
+  onToggleSidebar,
+  isMobileMenuOpen = false,
+  onToggleMobileMenu,
   onOpenAuth,
   onSignOut,
   onSelectProfile,
@@ -84,20 +95,61 @@ export const Navbar: React.FC<NavbarProps> = ({
       .join('');
   };
 
+  const handleProfileButtonClick = () => {
+    // On small mobile viewports, tapping avatar directly opens the Profile Drawer
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      onOpenProfile?.();
+    } else {
+      setIsSwitcherOpen((prev) => !prev);
+    }
+  };
+
   return (
-    <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-colors max-w-full overflow-visible select-none">
-      {/* Brand Logo & Search */}
-      <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+    <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-3 sm:px-6 lg:px-8 flex items-center justify-between transition-colors max-w-full overflow-hidden select-none">
+      {/* Brand Logo & Controls */}
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        {/* Mobile Hamburger Menu Toggle */}
+        {onToggleMobileMenu && (
+          <button
+            type="button"
+            onClick={onToggleMobileMenu}
+            className="lg:hidden p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+            title="Toggle navigation menu"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        )}
+
+        {/* Desktop Sidebar Collapse Toggle Button */}
+        {onToggleSidebar && (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            className="hidden lg:flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+            title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isSidebarCollapsed ? (
+              <PanelLeft className="w-4 h-4 text-emerald-700" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4 text-slate-500" />
+            )}
+          </button>
+        )}
+
         <div
-          className="flex items-center gap-2.5 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer"
           onClick={onOpenLanding || onOpenProfile}
           title="Return to CapitalBridge Introduction"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#0B5738] flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
-            <span className="font-black text-white text-sm tracking-tighter">CB</span>
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0B5738] flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+            <span className="font-black text-white text-xs sm:text-sm tracking-tighter">CB</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-900 tracking-tight text-base sm:text-lg">CapitalBridge</span>
+            <span className="font-bold text-slate-900 tracking-tight text-sm sm:text-base hidden xs:inline sm:inline">
+              CapitalBridge
+            </span>
             <span className="sr-only">Explainable Financial-Readiness Platform</span>
           </div>
         </div>
@@ -106,7 +158,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           type="button"
           onClick={onOpenSearch}
-          className="hidden md:flex items-center gap-2 bg-slate-50 hover:bg-slate-100/90 border border-slate-200/80 rounded-xl px-3 py-1.5 w-44 lg:w-56 transition text-xs text-slate-400 cursor-pointer shadow-2xs"
+          className="hidden md:flex items-center gap-2 bg-slate-50 hover:bg-slate-100/90 border border-slate-200/80 rounded-xl px-3 py-1.5 w-40 lg:w-52 transition text-xs text-slate-400 cursor-pointer shadow-2xs"
           title="Search verified evidence, metrics, or views (Ctrl+K or ⌘K)"
         >
           <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -120,7 +172,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           type="button"
           onClick={onOpenSearch}
-          className="md:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+          className="md:hidden p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
           title="Search metrics, evidence, or actions"
         >
           <Search className="w-4 h-4" />
@@ -128,26 +180,26 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Clean Right Actions */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Live Score Pill */}
-        <div className="flex items-center gap-2 bg-emerald-50/80 border border-emerald-200/70 rounded-xl px-2.5 sm:px-3 py-1.5 shadow-2xs">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50/80 border border-emerald-200/70 rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 shadow-2xs shrink-0">
           <div className="hidden sm:block text-right">
             <div className="text-[9px] uppercase tracking-wider text-emerald-800 font-bold leading-none">Readiness</div>
             <div className="text-[11px] font-bold text-emerald-700 leading-tight">{readinessBand}</div>
           </div>
           <div className="hidden sm:block h-5 w-[1px] bg-emerald-200" />
-          <div className="text-sm sm:text-base font-black text-slate-900 tabular-nums tracking-tight">
+          <div className="text-xs sm:text-base font-black text-slate-900 tabular-nums tracking-tight">
             {score}
-            <span className="text-[10px] font-normal text-slate-400">/1000</span>
+            <span className="text-[10px] font-normal text-slate-400 hidden xs:inline sm:inline">/1000</span>
           </div>
         </div>
 
-        {/* Active Account Switcher Dropdown */}
+        {/* Active Account Profile Chip & Switcher */}
         <div className="relative" ref={switcherRef}>
           <button
-            onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
-            title={`Active Profile: ${profile.name} (${profile.businessName}). Click to switch or view profile.`}
-            className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl p-1 sm:px-2.5 sm:py-1.5 text-xs text-left transition cursor-pointer"
+            onClick={handleProfileButtonClick}
+            title={`Active Profile: ${profile.name} (${profile.businessName}). Click to view profile.`}
+            className="flex items-center gap-1.5 sm:gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl p-1 sm:px-2.5 sm:py-1.5 text-xs text-left transition cursor-pointer shrink-0"
           >
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 relative">
               {getInitials(profile.name)}
@@ -155,7 +207,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -bottom-0.5 -right-0.5 ring-1.5 ring-white" />
               )}
             </div>
-            <div className="hidden md:block max-w-[120px] lg:max-w-[140px]">
+            <div className="hidden md:block max-w-[110px] lg:max-w-[130px]">
               <div className="font-bold text-slate-800 truncate leading-tight">
                 {profile.name}
               </div>
@@ -163,60 +215,113 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {profile.businessName}
               </div>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <ChevronDown className="hidden sm:block w-3.5 h-3.5 text-slate-400 shrink-0" />
           </button>
 
-          {/* Switcher Popover Menu */}
+          {/* Switcher & Profile Popover Menu */}
           {isSwitcherOpen && (
             <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="px-3.5 py-2 border-b border-slate-100">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Switch Active Account
+              {/* Active Profile Summary Card */}
+              <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    {getInitials(profile.name)}
+                  </div>
+                  <div className="truncate">
+                    <div className="font-bold text-slate-900 text-xs truncate flex items-center gap-1.5">
+                      <span>{profile.name}</span>
+                      {profile.id === 'usr_ama_mensah_01' && (
+                        <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
+                          Benchmark
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate">
+                      {profile.businessName}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="max-h-56 overflow-y-auto py-1">
-                {profiles.map((p) => {
-                  const isActive = p.id === profile.id;
-                  const isBenchmark = p.id === 'usr_ama_mensah_01';
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        onSelectProfile?.(p.id);
-                        setIsSwitcherOpen(false);
-                      }}
-                      className={`w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition cursor-pointer ${
-                        isActive ? 'bg-emerald-50/60 font-bold' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 truncate">
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 ${
-                            isBenchmark ? 'bg-emerald-600' : 'bg-slate-700'
+              {/* Direct Profile View */}
+              <div className="p-1.5">
+                {onOpenProfile && (
+                  <button
+                    onClick={() => {
+                      setIsSwitcherOpen(false);
+                      onOpenProfile();
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 rounded-xl transition flex items-center gap-2 cursor-pointer"
+                  >
+                    <Building className="w-4 h-4 text-emerald-600" />
+                    <span>View Profile & Consent</span>
+                  </button>
+                )}
+
+                {onOpenPassport && (
+                  <button
+                    onClick={() => {
+                      setIsSwitcherOpen(false);
+                      onOpenPassport();
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition flex items-center gap-2 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>View Financial Passport</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Only show switch list if multiple profiles actually exist */}
+              {profiles.length > 1 && (
+                <div className="border-t border-slate-100 pt-1">
+                  <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Switch Active Account
+                  </div>
+                  <div className="max-h-48 overflow-y-auto py-1">
+                    {profiles.map((p) => {
+                      const isActive = p.id === profile.id;
+                      const isBenchmark = p.id === 'usr_ama_mensah_01';
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            onSelectProfile?.(p.id);
+                            setIsSwitcherOpen(false);
+                          }}
+                          className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition cursor-pointer ${
+                            isActive ? 'bg-emerald-50/60 font-bold' : ''
                           }`}
                         >
-                          {getInitials(p.name)}
-                        </div>
-                        <div className="truncate">
-                          <div className="text-slate-900 font-bold truncate flex items-center gap-1.5">
-                            <span>{p.name}</span>
-                            {isBenchmark && (
-                              <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
-                                Benchmark
-                              </span>
-                            )}
+                          <div className="flex items-center gap-2.5 truncate">
+                            <div
+                              className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 ${
+                                isBenchmark ? 'bg-emerald-600' : 'bg-slate-700'
+                              }`}
+                            >
+                              {getInitials(p.name)}
+                            </div>
+                            <div className="truncate">
+                              <div className="text-slate-900 font-bold truncate flex items-center gap-1.5">
+                                <span>{p.name}</span>
+                                {isBenchmark && (
+                                  <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
+                                    Benchmark
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-slate-400 truncate">
+                                {p.businessName}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-[11px] text-slate-400 truncate">
-                            {p.businessName}
-                          </div>
-                        </div>
-                      </div>
-                      {isActive && <Check className="w-4 h-4 text-emerald-600 shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
+                          {isActive && <Check className="w-4 h-4 text-emerald-600 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="p-2 border-t border-slate-100 space-y-1">
                 {onOpenOnboarding && (

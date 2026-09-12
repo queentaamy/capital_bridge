@@ -344,18 +344,16 @@ export class ProfileManager {
   }
 
   /**
-   * Retrieves all profiles stored locally, always guaranteeing Ama Mensah exists
+   * Retrieves all profiles stored locally, always guaranteeing Ama Mensah exists at index 0
    */
   static getStoredProfiles(): UserProfile[] {
     try {
       const raw = safeGetItem(STORAGE_KEYS.PROFILES);
       if (!raw) return [AMA_PROFILE];
       const parsed: UserProfile[] = JSON.parse(raw);
-      // Ensure Ama Mensah is always present as the reference benchmark
-      if (!parsed.some((p) => p.id === AMA_PROFILE.id)) {
-        return [AMA_PROFILE, ...parsed];
-      }
-      return parsed;
+      // Ensure Ama Mensah is always present as the reference benchmark at index 0
+      const filtered = parsed.filter((p) => p.id !== AMA_PROFILE.id);
+      return [AMA_PROFILE, ...filtered];
     } catch {
       return [AMA_PROFILE];
     }
@@ -367,8 +365,8 @@ export class ProfileManager {
   static saveProfile(profile: UserProfile): void {
     try {
       const existing = this.getStoredProfiles();
-      const filtered = existing.filter((p) => p.id !== profile.id);
-      const updated = [profile, ...filtered];
+      const filtered = existing.filter((p) => p.id !== profile.id && p.id !== AMA_PROFILE.id);
+      const updated = [AMA_PROFILE, profile, ...filtered];
       safeSetItem(STORAGE_KEYS.PROFILES, JSON.stringify(updated));
     } catch {
       // Storage error fallback
@@ -380,7 +378,13 @@ export class ProfileManager {
    */
   static getActiveProfileId(): string {
     try {
-      return safeGetItem(STORAGE_KEYS.ACTIVE_PROFILE_ID) || AMA_PROFILE.id;
+      const id = safeGetItem(STORAGE_KEYS.ACTIVE_PROFILE_ID);
+      if (!id) return AMA_PROFILE.id;
+      const profiles = this.getStoredProfiles();
+      if (!profiles.some((p) => p.id === id)) {
+        return AMA_PROFILE.id;
+      }
+      return id;
     } catch {
       return AMA_PROFILE.id;
     }

@@ -52,6 +52,15 @@ import {
   Target,
   ArrowUpRight,
   Filter,
+  LayoutDashboard,
+  Building2,
+  Gauge,
+  UserCheck,
+  UserPlus,
+  LogIn,
+  LogOut,
+  Compass,
+  X,
 } from 'lucide-react';
 
 export function App() {
@@ -66,6 +75,25 @@ export function App() {
   const [observationWindow, setObservationWindow] = useState('6-Month Audit');
   const [tableCategoryFilter, setTableCategoryFilter] = useState<string>('all');
 
+  // Sidebar collapse state & mobile drawer state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('capitalbridge_sidebar_collapsed') === 'true';
+    }
+    return false;
+  });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('capitalbridge_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
   // Controls whether the visitor sees the landing / intro screen first
   const [showLanding, setShowLanding] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
@@ -73,9 +101,9 @@ export function App() {
     return !params.has('view') && !params.has('tab') && !params.has('skip_landing');
   });
 
-  // Active user profile
+  // Active user profile - infallible fallback to AMA_PROFILE, never an unknown account
   const profile = useMemo(() => {
-    return profiles.find((p) => p.id === activeProfileId) || profiles[0] || AMA_PROFILE;
+    return profiles.find((p) => p.id === activeProfileId) || AMA_PROFILE;
   }, [profiles, activeProfileId]);
 
   const [records, setRecords] = useState<EvidenceRecord[]>(() => {
@@ -95,7 +123,7 @@ export function App() {
   const [notification, setNotification] = useState<string | null>(null);
   const [cloudSyncStatus, setCloudSyncStatus] = useState<CloudSyncStatus>('synced');
 
-  // Hydrate initial state from Supabase on mount with offline fallback
+  // Hydrate initial state from Supabase on mount with offline fallback and profile isolation
   useEffect(() => {
     let isMounted = true;
     const hydrateCloudData = async () => {
@@ -107,23 +135,39 @@ export function App() {
           return;
         }
 
-        const [cloudProfiles, cloudRecords, cloudActions] = await Promise.all([
-          SupabaseService.fetchAllProfiles(),
+        // Only fetch profiles associated with the logged-in user account to prevent leaking other accounts
+        let cloudProfiles: UserProfile[] = [];
+        if (sessionUser?.email) {
+          cloudProfiles = await SupabaseService.fetchProfilesForEmail(sessionUser.email);
+        }
+
+        const [cloudRecords, cloudActions] = await Promise.all([
           SupabaseService.fetchEvidenceRecords(activeProfileId),
           SupabaseService.fetchImprovementActions(activeProfileId),
         ]);
 
         if (isMounted) {
-          if (cloudProfiles && cloudProfiles.length > 0) {
-            const localProfiles = ProfileManager.getStoredProfiles();
-            const merged = [...cloudProfiles];
-            localProfiles.forEach((lp) => {
-              if (!merged.some((mp) => mp.id === lp.id)) {
-                merged.push(lp);
-              }
-            });
-            setProfiles(merged);
+          const localProfiles = ProfileManager.getStoredProfiles();
+          // Always ensure Ama Mensah is at index 0 as benchmark
+          const merged: UserProfile[] = [AMA_PROFILE];
+          localProfiles.forEach((lp) => {
+            if (lp.id !== AMA_PROFILE.id && !merged.some((mp) => mp.id === lp.id)) {
+              merged.push(lp);
+            }
+          });
+          cloudProfiles.forEach((cp) => {
+            if (cp.id !== AMA_PROFILE.id && !merged.some((mp) => mp.id === cp.id)) {
+              merged.push(cp);
+            }
+          });
+          setProfiles(merged);
+
+          // If activeProfileId is not in merged, safely fall back to Ama Mensah
+          if (!merged.some((p) => p.id === activeProfileId)) {
+            setActiveProfileId(AMA_PROFILE.id);
+            ProfileManager.setActiveProfileId(AMA_PROFILE.id);
           }
+
           if (cloudRecords && cloudRecords.length > 0) {
             setRecords(cloudRecords);
             ProfileManager.saveRecordsForProfile(activeProfileId, cloudRecords);
@@ -544,44 +588,55 @@ export function App() {
         </div>
       )}
 
-      {/* Top Navigation Bar */}
-      <Navbar
-        profile={profile}
-        score={assessment.overallScore}
-        readinessBand={assessment.readinessBand}
-        cloudSyncStatus={cloudSyncStatus}
-        profiles={profiles}
+      {/* Fixed Desktop Sidebar (Fixed to entire viewport) */}
+      <Sidebar
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
+        evidenceCount={activeRecordsCount}
+        openTasksCount={openTasksCount}
         sessionUser={sessionUser}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleSidebar}
         onOpenAuth={handleOpenAuth}
         onSignOut={handleSignOut}
-        onSelectProfile={handleSelectProfile}
-        onOpenOnboarding={() => setIsOnboardingOpen(true)}
-        onResetDemo={handleResetDemo}
-        onOpenPassport={() => setCurrentTab('passport')}
         onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenOnboarding={() => setIsOnboardingOpen(true)}
         onOpenLanding={() => setShowLanding(true)}
-        onOpenSearch={() => setIsSearchOpen(true)}
-        observationWindow={observationWindow}
-        onSelectObservationWindow={setObservationWindow}
       />
 
-      <div className="flex-1 flex w-full max-w-[1600px] mx-auto">
-        {/* Desktop Sidebar */}
-        <Sidebar
-          currentTab={currentTab}
-          onSelectTab={setCurrentTab}
-          evidenceCount={activeRecordsCount}
-          openTasksCount={openTasksCount}
+      {/* Main Content Area (Offset by fixed sidebar width on desktop) */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-200 ${
+          isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+        }`}
+      >
+        {/* Top Navigation Bar */}
+        <Navbar
+          profile={profile}
+          score={assessment.overallScore}
+          readinessBand={assessment.readinessBand}
+          cloudSyncStatus={cloudSyncStatus}
+          profiles={profiles}
           sessionUser={sessionUser}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={handleToggleSidebar}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
           onOpenAuth={handleOpenAuth}
           onSignOut={handleSignOut}
-          onOpenProfile={() => setIsProfileOpen(true)}
+          onSelectProfile={handleSelectProfile}
           onOpenOnboarding={() => setIsOnboardingOpen(true)}
+          onResetDemo={handleResetDemo}
+          onOpenPassport={() => setCurrentTab('passport')}
+          onOpenProfile={() => setIsProfileOpen(true)}
           onOpenLanding={() => setShowLanding(true)}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          observationWindow={observationWindow}
+          onSelectObservationWindow={setObservationWindow}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden overflow-y-auto">
+        {/* Dynamic Main Workspace */}
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden w-full max-w-[1600px] mx-auto">
           {/* 1. DASHBOARD / OVERVIEW */}
           {currentTab === 'dashboard' && (
             <div className="space-y-6">
@@ -996,6 +1051,187 @@ export function App() {
           )}
         </main>
       </div>
+
+      {/* Mobile Slide-Over Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden animate-in fade-in duration-200">
+          {/* Backdrop Overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Panel */}
+          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white z-50 shadow-2xl flex flex-col p-4 animate-in slide-in-from-left duration-200 overflow-y-auto">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+              <div
+                className="flex items-center gap-2.5 cursor-pointer"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setShowLanding(true);
+                }}
+              >
+                <div className="w-8 h-8 rounded-xl bg-[#0B5738] flex items-center justify-center text-white font-black text-xs shadow-xs shrink-0">
+                  CB
+                </div>
+                <span className="font-bold text-slate-900 text-base tracking-tight">
+                  CapitalBridge
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+                title="Close menu"
+                aria-label="Close navigation menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Active Persona Mini Card */}
+            <div
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsProfileOpen(true);
+              }}
+              className="mt-3 p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl cursor-pointer hover:bg-emerald-100/60 transition"
+              title="Click to view full profile & consent"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  Active Persona
+                </span>
+                <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded">
+                  {assessment.overallScore}/1000
+                </span>
+              </div>
+              <div className="font-bold text-slate-900 text-sm truncate">{profile.name}</div>
+              <div className="text-[11px] text-slate-500 truncate">{profile.businessName}</div>
+            </div>
+
+            {/* Navigation Items (All 8 Tabs) */}
+            <div className="mt-4 flex-1 space-y-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">
+                Navigation
+              </div>
+
+              {[
+                { id: 'dashboard' as TabType, label: 'Overview', icon: LayoutDashboard },
+                { id: 'evidence' as TabType, label: 'Evidence Center', icon: FileCheck2, badge: activeRecordsCount },
+                { id: 'indicators' as TabType, label: 'Readiness Metrics', icon: Gauge },
+                { id: 'simulator' as TabType, label: 'What-If Simulator', icon: SlidersHorizontal, badge: 'Interactive' },
+                { id: 'coach' as TabType, label: 'AI Credit Coach', icon: Bot, badge: 'Grounded' },
+                { id: 'actions' as TabType, label: 'Action Plan', icon: ListTodo, badge: openTasksCount },
+                { id: 'passport' as TabType, label: 'Financial Passport', icon: ShieldCheck },
+                { id: 'lender' as TabType, label: 'Lender View (P1)', icon: Building2 },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = currentTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setCurrentTab(item.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                      isActive
+                        ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                        : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge !== undefined && (
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isActive
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* General Actions */}
+            <div className="mt-4 pt-3 border-t border-slate-100 space-y-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsProfileOpen(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <UserCheck className="w-4 h-4 text-emerald-600" />
+                <span>Profile & Consent</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsOnboardingOpen(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4 text-emerald-600" />
+                <span>+ Build New Profile</span>
+              </button>
+
+              {!sessionUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleOpenAuth('signin');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4 text-emerald-600" />
+                  <span>Sign In to Account</span>
+                </button>
+              )}
+
+              {sessionUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 text-rose-500" />
+                  <span className="truncate">Sign Out ({sessionUser.email})</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setShowLanding(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-50 transition cursor-pointer"
+              >
+                <Compass className="w-4 h-4 text-slate-400" />
+                <span>Product Introduction</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Bottom Navigation */}
       <BottomNav currentTab={currentTab} onSelectTab={setCurrentTab} />
