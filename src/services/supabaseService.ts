@@ -27,6 +27,8 @@ export interface ProfileRow {
   capital_goal_amount: number;
   capital_goal_purpose: string;
   currency: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface EvidenceRecordRow {
@@ -79,13 +81,13 @@ export function mapProfileFromRow(row: ProfileRow): UserProfile {
     id: row.id,
     name: row.name,
     email: row.email,
-    phone: row.phone || AMA_PROFILE.phone,
+    phone: row.phone || (row.id === AMA_PROFILE.id ? AMA_PROFILE.phone : ''),
     businessName: row.business_name,
     businessType: row.business_type,
     businessLocation: row.business_location,
     capitalGoalAmount: Number(row.capital_goal_amount),
     capitalGoalPurpose: row.capital_goal_purpose,
-    createdAt: AMA_PROFILE.createdAt,
+    createdAt: row.created_at || (row.id === AMA_PROFILE.id ? AMA_PROFILE.createdAt : new Date().toISOString()),
     currency: row.currency,
   };
 }

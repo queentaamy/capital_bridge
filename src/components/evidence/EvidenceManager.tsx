@@ -113,121 +113,142 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
       </div>
 
       {/* Evidence Record Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredRecords.map((rec) => (
-          <div
-            key={rec.id}
-            className={`rounded-3xl border p-4 sm:p-6 transition flex flex-col justify-between ${
-              rec.isActive
-                ? 'bg-white border-slate-200/80 hover:border-slate-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]'
-                : 'bg-slate-50/70 border-slate-200 opacity-60'
-            }`}
+      {filteredRecords.length === 0 ? (
+        <div className="bg-white border border-dashed border-slate-300 rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center justify-center max-w-lg mx-auto my-6">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
+            <FileCheck2 className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-slate-900 mb-1">
+            No Verified Evidence Records
+          </h3>
+          <p className="text-xs text-slate-500 max-w-sm mb-5 leading-relaxed">
+            This borrower profile does not have any active financial statements uploaded yet. Add a Mobile Money statement, bank statement, or sales book to calculate verified readiness.
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-2xl text-xs transition shadow-sm active:scale-95 cursor-pointer"
           >
-            <div>
-              {/* Header */}
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                    <FileCheck2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400">
-                      {rec.category}
-                    </span>
-                    <h4 className="text-sm font-bold text-slate-900">{rec.title}</h4>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {onDeleteRecord &&
-                    rec.id !== 'ev_momo_01' &&
-                    rec.id !== 'ev_bank_01' &&
-                    rec.id !== 'ev_savings_01' &&
-                    rec.id !== 'ev_biz_01' &&
-                    rec.id !== 'ev_debt_01' &&
-                    rec.id !== 'ev_kyc_01' && (
-                      <button
-                        onClick={() => onDeleteRecord(rec.id)}
-                        title="Remove custom record"
-                        className="p-1 text-slate-300 hover:text-rose-600 transition cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  <button
-                    onClick={() => onToggleRecord(rec.id)}
-                    title={rec.isActive ? 'Disable record (simulate removal)' : 'Enable record'}
-                    className="p-1 text-slate-400 hover:text-slate-800 transition shrink-0 cursor-pointer"
-                  >
-                    {rec.isActive ? (
-                      <ToggleRight className="w-6 h-6 text-emerald-600" />
-                    ) : (
-                      <ToggleLeft className="w-6 h-6 text-slate-300" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Source & Date Range */}
-              <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-2 my-3 text-xs">
-                <div className="flex items-center justify-between text-slate-700">
-                  <span className="text-slate-500 font-medium">Verified Source:</span>
-                  <span className="font-bold text-slate-800 truncate max-w-[160px] text-right">{rec.sourceName}</span>
-                </div>
-                <div className="flex items-center justify-between text-slate-700">
-                  <span className="text-slate-500 font-medium">Window:</span>
-                  <span className="font-mono text-slate-600">
-                    {rec.dateRange.start} → {rec.dateRange.end}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-slate-700">
-                  <span className="text-slate-500 font-medium">Entries Verified:</span>
-                  <span className="text-emerald-700 font-black tabular-nums">
-                    {rec.recordCount} records
-                  </span>
-                </div>
-
-                {rec.totalInflow !== undefined && (
-                  <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between">
-                    <div className="text-[11px] text-slate-600 flex items-center gap-1">
-                      <ArrowDownRight className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Inflows:</span>
-                      <strong className="text-slate-900 font-bold">
-                        GH₵ {rec.totalInflow.toLocaleString()}
-                      </strong>
+            <Plus className="w-4 h-4" />
+            <span>Add Consented Evidence</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredRecords.map((rec) => (
+            <div
+              key={rec.id}
+              className={`rounded-3xl border p-4 sm:p-6 transition flex flex-col justify-between ${
+                rec.isActive
+                  ? 'bg-white border-slate-200/80 hover:border-slate-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]'
+                  : 'bg-slate-50/70 border-slate-200 opacity-60'
+              }`}
+            >
+              <div>
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                      <FileCheck2 className="w-4 h-4" />
                     </div>
-                    {rec.totalOutflow !== undefined && rec.totalOutflow > 0 && (
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400">
+                        {rec.category}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900">{rec.title}</h4>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {onDeleteRecord &&
+                      rec.id !== 'ev_momo_01' &&
+                      rec.id !== 'ev_bank_01' &&
+                      rec.id !== 'ev_savings_01' &&
+                      rec.id !== 'ev_biz_01' &&
+                      rec.id !== 'ev_debt_01' &&
+                      rec.id !== 'ev_kyc_01' && (
+                        <button
+                          onClick={() => onDeleteRecord(rec.id)}
+                          title="Remove custom record"
+                          className="p-1 text-slate-300 hover:text-rose-600 transition cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    <button
+                      onClick={() => onToggleRecord(rec.id)}
+                      title={rec.isActive ? 'Disable record (simulate removal)' : 'Enable record'}
+                      className="p-1 text-slate-400 hover:text-slate-800 transition shrink-0 cursor-pointer"
+                    >
+                      {rec.isActive ? (
+                        <ToggleRight className="w-6 h-6 text-emerald-600" />
+                      ) : (
+                        <ToggleLeft className="w-6 h-6 text-slate-300" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Source & Date Range */}
+                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-2 my-3 text-xs">
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500 font-medium">Verified Source:</span>
+                    <span className="font-bold text-slate-800 truncate max-w-[160px] text-right">{rec.sourceName}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500 font-medium">Window:</span>
+                    <span className="font-mono text-slate-600">
+                      {rec.dateRange.start} → {rec.dateRange.end}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500 font-medium">Entries Verified:</span>
+                    <span className="text-emerald-700 font-black tabular-nums">
+                      {rec.recordCount} records
+                    </span>
+                  </div>
+
+                  {rec.totalInflow !== undefined && (
+                    <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between">
                       <div className="text-[11px] text-slate-600 flex items-center gap-1">
-                        <ArrowUpRight className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span>Outflows:</span>
+                        <ArrowDownRight className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Inflows:</span>
                         <strong className="text-slate-900 font-bold">
-                          GH₵ {rec.totalOutflow.toLocaleString()}
+                          GH₵ {rec.totalInflow.toLocaleString()}
                         </strong>
                       </div>
-                    )}
-                  </div>
+                      {rec.totalOutflow !== undefined && rec.totalOutflow > 0 && (
+                        <div className="text-[11px] text-slate-600 flex items-center gap-1">
+                          <ArrowUpRight className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>Outflows:</span>
+                          <strong className="text-slate-900 font-bold">
+                            GH₵ {rec.totalOutflow.toLocaleString()}
+                          </strong>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                {rec.notes && (
+                  <p className="text-xs text-slate-500 leading-relaxed italic">{rec.notes}</p>
                 )}
               </div>
 
-              {/* Notes */}
-              {rec.notes && (
-                <p className="text-xs text-slate-500 leading-relaxed italic">{rec.notes}</p>
-              )}
+              {/* Provenance Hash */}
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 font-mono">
+                <span className="flex items-center gap-1 truncate max-w-[180px]">
+                  <Hash className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{rec.traceabilityHash || 'sha256-verified'}</span>
+                </span>
+                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-sans font-bold shrink-0">
+                  Consented & Audited
+                </span>
+              </div>
             </div>
-
-            {/* Provenance Hash */}
-            <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 font-mono">
-              <span className="flex items-center gap-1 truncate max-w-[180px]">
-                <Hash className="w-3 h-3 shrink-0" />
-                <span className="truncate">{rec.traceabilityHash || 'sha256-verified'}</span>
-              </span>
-              <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-sans font-bold shrink-0">
-                Consented & Audited
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Add Evidence Modal */}
       {isModalOpen && (
