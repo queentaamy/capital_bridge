@@ -290,8 +290,6 @@ export function App() {
     return Math.round(totalInflow / 6);
   }, [records]);
 
-  // Dynamically compute simulator preview lift for dashboard teaser
-  const simLift = useMemo(() => {
   // Dynamically compute monthly turnover growth rate from records
   const turnoverGrowthRate = useMemo(() => {
     const commercialRecords = records.filter(

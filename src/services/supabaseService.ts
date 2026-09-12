@@ -139,6 +139,17 @@ export function mapEvidenceRecordToRow(
 
 export function mapActionFromRow(row: ImprovementActionRow): ImprovementAction {
   const seedAction = INITIAL_IMPROVEMENT_ACTIONS.find((a) => a.id === row.id);
+  const category = (row.category as EvidenceCategory) || seedAction?.category || 'business';
+
+  // Intelligently infer actionType if not in initial seed actions
+  let actionType: ImprovementAction['actionType'] = seedAction?.actionType || 'upload_document';
+  if (!seedAction) {
+    if (category === 'obligations') actionType = 'reduce_debt';
+    else if (category === 'savings') actionType = 'consistent_savings';
+    else if (category === 'transactions') actionType = 'record_sales';
+    else actionType = 'upload_document';
+  }
+
   return {
     id: row.id,
     rank: row.rank,
@@ -146,9 +157,9 @@ export function mapActionFromRow(row: ImprovementActionRow): ImprovementAction {
     title: row.title,
     rationale: row.rationale,
     estimatedPointGain: Number(row.estimated_point_gain),
-    category: (row.category as EvidenceCategory) || seedAction?.category || 'business',
+    category,
     status: row.status as 'not_started' | 'in_progress' | 'completed',
-    actionType: seedAction?.actionType || 'upload_document',
+    actionType,
   };
 }
 
@@ -204,7 +215,7 @@ export class SupabaseService {
   }
 
   /**
-   * Fetches all registered user profiles from Supabase, guaranteeing Ama Mensah
+   * Fetches all registered user profiles from Supabase, guaranteeing Ama Mensah at index 0 as benchmark
    */
   static async fetchAllProfiles(): Promise<UserProfile[]> {
     try {
@@ -217,17 +228,16 @@ export class SupabaseService {
         return [AMA_PROFILE];
       }
       const profiles = data.map((row: any) => mapProfileFromRow(row as ProfileRow));
-      if (!profiles.some((p) => p.id === AMA_PROFILE.id)) {
-        profiles.push(AMA_PROFILE);
-      }
-      return profiles;
+      const ama = profiles.find((p) => p.id === AMA_PROFILE.id) || AMA_PROFILE;
+      const nonAma = profiles.filter((p) => p.id !== AMA_PROFILE.id);
+      return [ama, ...nonAma];
     } catch {
       return [AMA_PROFILE];
     }
   }
 
   /**
-   * Fetches only user profiles matching an email address, isolating user accounts
+   * Fetches only user profiles matching an email address, guaranteeing Ama Mensah at index 0 as benchmark
    */
   static async fetchProfilesForEmail(email?: string | null): Promise<UserProfile[]> {
     if (!email) {
@@ -244,10 +254,9 @@ export class SupabaseService {
         return [AMA_PROFILE];
       }
       const profiles = data.map((row: any) => mapProfileFromRow(row as ProfileRow));
-      if (!profiles.some((p) => p.id === AMA_PROFILE.id)) {
-        profiles.push(AMA_PROFILE);
-      }
-      return profiles;
+      const ama = profiles.find((p) => p.id === AMA_PROFILE.id) || AMA_PROFILE;
+      const nonAma = profiles.filter((p) => p.id !== AMA_PROFILE.id);
+      return [ama, ...nonAma];
     } catch {
       return [AMA_PROFILE];
     }
@@ -473,8 +482,20 @@ export class SupabaseService {
 
       // Upsert the 6 indicators into assessment_indicators table
       if (assessment.indicators) {
+        const amaIndicatorIdMap: Record<string, string> = {
+          income_consistency: 'ind_income_01',
+          business_activity: 'ind_biz_01',
+          savings_behaviour: 'ind_savings_01',
+          debt_burden: 'ind_debt_01',
+          cashflow_stability: 'ind_cashflow_01',
+          documentation_completeness: 'ind_doc_01',
+        };
+
         const indicatorRows = Object.values(assessment.indicators).map((ind) => ({
-          id: `ind_${profileId}_${ind.key}`,
+          id:
+            profileId === AMA_PROFILE.id && amaIndicatorIdMap[ind.key]
+              ? amaIndicatorIdMap[ind.key]
+              : `ind_${profileId}_${ind.key}`,
           assessment_id: assessmentId,
           indicator_key: ind.key,
           value: ind.value,

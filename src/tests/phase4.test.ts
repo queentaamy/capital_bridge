@@ -116,8 +116,8 @@ async function runPhase4Tests() {
   console.log('\n--- Suite 3: Cloud Hydration & Record Retrieval ---');
 
   const profile = await SupabaseService.fetchProfile(AMA_PROFILE.id);
-  assert(profile.name === 'Ama Mensah', 'fetchProfile returns Ama Mensah profile');
-  assert(profile.capitalGoalAmount === 8000, 'fetchProfile verifies GH₵8,000 capital goal');
+  assert(profile?.name === 'Ama Mensah', 'fetchProfile returns Ama Mensah profile');
+  assert(profile?.capitalGoalAmount === 8000, 'fetchProfile verifies GH₵8,000 capital goal');
 
   const records = await SupabaseService.fetchEvidenceRecords(AMA_PROFILE.id);
   assert(records.length >= 7, 'fetchEvidenceRecords returns at least 7 verified evidence records');
