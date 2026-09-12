@@ -103,7 +103,7 @@ export const TurnoverChart: React.FC<TurnoverChartProps> = ({
   ).length;
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] transition">
+    <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] transition">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -176,7 +176,7 @@ export const TurnoverChart: React.FC<TurnoverChartProps> = ({
 
       {/* Summary Stat & Active Highlight Pill */}
       <div className="flex flex-wrap items-baseline gap-3 mb-6">
-        <div className="text-3xl font-black text-slate-900 tabular-nums tracking-tight">
+        <div className="text-2xl sm:text-3xl font-black text-slate-900 tabular-nums tracking-tight">
           {currency} {activeRecord.amount.toLocaleString()}
         </div>
         <div className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
@@ -190,7 +190,7 @@ export const TurnoverChart: React.FC<TurnoverChartProps> = ({
 
       {/* Vertical Pill Bar Chart */}
       <div className="relative pt-8 pb-2">
-        <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 px-2 sm:px-6">
+        <div className="h-44 flex items-end justify-between gap-1.5 sm:gap-4 px-1 sm:px-6">
           {monthlyRecords.map((rec) => {
             const isSelected = selectedMonth === rec.month;
             return (
@@ -208,7 +208,7 @@ export const TurnoverChart: React.FC<TurnoverChartProps> = ({
                 )}
 
                 {/* Pill Pillar */}
-                <div className="w-full max-w-[48px] bg-slate-100 rounded-full h-full flex items-end p-1 transition group-hover:bg-slate-200/70">
+                <div className="w-full max-w-[36px] sm:max-w-[48px] bg-slate-100 rounded-full h-full flex items-end p-1 transition group-hover:bg-slate-200/70">
                   <div
                     style={{ height: `${rec.heightPercent}%` }}
                     className={`w-full rounded-full transition-all duration-500 ease-out ${

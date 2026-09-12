@@ -8,6 +8,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Trash2,
+  X,
 } from 'lucide-react';
 import type { EvidenceCategory, EvidenceRecord } from '../../types';
 
@@ -230,14 +231,28 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
 
       {/* Add Evidence Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white border border-slate-200/80 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 sm:p-7 text-slate-800 shadow-2xl">
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Add Consented Evidence</h3>
-            <p className="text-xs text-slate-500 mb-4">
-              Simulate submitting additional bookkeeping, bank statements, or savings logs.
-            </p>
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center overflow-hidden bg-slate-900/60 backdrop-blur-sm sm:p-4 animate-in fade-in">
+          <div className="bg-white border-t sm:border border-slate-200/80 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden text-slate-800 shadow-2xl">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 pb-3 shrink-0 border-b border-slate-100">
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Add Consented Evidence</h3>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Simulate submitting additional bookkeeping, bank statements, or savings logs.
+              </p>
+            </div>
 
-            <form onSubmit={handleAddSubmit} className="space-y-4 text-xs">
+            {/* Scrollable Form Body */}
+            <form id="evidence-form" onSubmit={handleAddSubmit} className="flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6 space-y-4 text-xs">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">Evidence Category</label>
                 <select
@@ -308,23 +323,25 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-emerald-500"
                 />
               </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition shadow-sm"
-                >
-                  Add to Evidence & Recalculate
-                </button>
-              </div>
             </form>
+
+            {/* Modal Pinned Footer */}
+            <div className="p-4 sm:p-6 pt-3 border-t border-slate-100 shrink-0 bg-slate-50/90 flex flex-col sm:flex-row items-center justify-end gap-2">
+              <button
+                type="submit"
+                form="evidence-form"
+                className="w-full sm:w-auto order-1 sm:order-2 px-5 py-3 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl transition shadow-sm active:scale-95 text-center"
+              >
+                Add to Evidence & Recalculate
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-full sm:w-auto order-2 sm:order-1 px-4 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-800 rounded-xl text-center"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

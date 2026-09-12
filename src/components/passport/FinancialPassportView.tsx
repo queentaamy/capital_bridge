@@ -353,8 +353,8 @@ export const FinancialPassportView: React.FC<FinancialPassportViewProps> = ({
 
       {/* Cryptographic QR Verification Modal */}
       {isQrModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center overflow-hidden bg-slate-900/60 backdrop-blur-sm sm:p-4 animate-in fade-in">
+          <div className="bg-white border-t sm:border border-slate-200 rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative max-h-[92dvh] overflow-y-auto">
             <button
               onClick={() => setIsQrModalOpen(false)}
               className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
