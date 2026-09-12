@@ -20,7 +20,7 @@ try {
 } catch {}
 
 async function testGeminiIntegration() {
-  console.log('Testing Gemini 3.6 Flash Integration with live App Data...');
+  console.log('Testing Gemini 2.5 Flash Integration with live App Data...');
   const assessment = calculateAssessment(AMA_PROFILE.id, INITIAL_EVIDENCE_RECORDS);
 
   console.log(`Profile: ${AMA_PROFILE.name} (${AMA_PROFILE.businessName})`);

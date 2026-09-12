@@ -18,6 +18,8 @@ import {
   PanelLeftClose,
 } from 'lucide-react';
 
+import type { UserProfile } from '../../types';
+
 export type TabType =
   | 'dashboard'
   | 'evidence'
@@ -34,6 +36,7 @@ interface SidebarProps {
   evidenceCount: number;
   openTasksCount: number;
   sessionUser?: { id: string; email: string } | null;
+  profile?: UserProfile;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
@@ -49,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   evidenceCount,
   openTasksCount,
   sessionUser = null,
+  profile,
   isCollapsed = false,
   onToggleCollapse,
   onOpenAuth,
@@ -374,7 +378,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span>Capital Readiness</span>
               </div>
               <p className="text-[11px] text-emerald-100/90 leading-snug mb-3">
-                Aiming for GH₵8,000 working capital in Makola Market.
+                {profile
+                  ? `Aiming for ${profile.currency} ${profile.capitalGoalAmount.toLocaleString()} working capital in ${profile.businessLocation || profile.businessName}.`
+                  : 'Aiming for GH₵8,000 working capital in Makola Market.'}
               </p>
               <button
                 onClick={() => onSelectTab('passport')}

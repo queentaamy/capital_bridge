@@ -660,6 +660,7 @@ export function App() {
         evidenceCount={activeRecordsCount}
         openTasksCount={openTasksCount}
         sessionUser={sessionUser}
+        profile={profile}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={handleToggleSidebar}
         onOpenAuth={handleOpenAuth}
@@ -835,6 +836,8 @@ export function App() {
                     band={assessment.readinessBand}
                     bandDescription={assessment.bandDescription}
                     methodologyVersion={assessment.methodologyVersion}
+                    capitalGoalAmount={profile.capitalGoalAmount}
+                    currency={profile.currency}
                   />
                 </div>
               </div>

@@ -7,6 +7,8 @@ interface ReadinessGaugeProps {
   band: ReadinessBand;
   bandDescription: string;
   methodologyVersion: string;
+  capitalGoalAmount?: number;
+  currency?: string;
 }
 
 export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({
@@ -14,6 +16,8 @@ export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({
   band,
   bandDescription,
   methodologyVersion,
+  capitalGoalAmount,
+  currency = 'GH₵',
 }) => {
   // Semi-circular or circular progress calculations
   const normalized = Math.min(1000, Math.max(0, score));
@@ -115,7 +119,10 @@ export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({
             </div>
             <div className="bg-emerald-50/70 border border-emerald-200/70 p-3 rounded-2xl">
               <div className="text-[10px] text-emerald-800 uppercase font-semibold">Capital Feasibility</div>
-              <div className="text-sm font-bold text-emerald-700 mt-0.5">High (GH₵8,000)</div>
+              <div className="text-sm font-bold text-emerald-700 mt-0.5">
+                {score >= 700 ? 'High' : score >= 550 ? 'Moderate' : 'Low'} (
+                {currency} {capitalGoalAmount ? capitalGoalAmount.toLocaleString() : '8,000'})
+              </div>
             </div>
           </div>
         </div>

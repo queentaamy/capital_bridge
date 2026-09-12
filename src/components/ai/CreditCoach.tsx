@@ -25,6 +25,74 @@ interface CreditCoachProps {
   onNavigateToActions?: () => void;
 }
 
+function renderInlineFormatting(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-bold text-slate-900">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
+
+function renderFormattedCoachText(text: string): React.ReactNode {
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-1">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (trimmed === '---' || trimmed === '***') {
+          return <hr key={idx} className="my-2 border-slate-200/80" />;
+        }
+        if (trimmed.startsWith('### ')) {
+          return (
+            <h4 key={idx} className="font-bold text-slate-900 text-xs mt-2.5 mb-1 flex items-center gap-1.5">
+              {renderInlineFormatting(trimmed.slice(4))}
+            </h4>
+          );
+        }
+        if (trimmed.startsWith('## ')) {
+          return (
+            <h3 key={idx} className="font-bold text-slate-900 text-sm mt-3 mb-1">
+              {renderInlineFormatting(trimmed.slice(3))}
+            </h3>
+          );
+        }
+        if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const bulletContent = trimmed.replace(/^[•\-*]\s+/, '');
+          return (
+            <div key={idx} className="flex items-start gap-1.5 ml-1 text-slate-700">
+              <span className="text-emerald-600 font-bold shrink-0 mt-0.5">•</span>
+              <span className="flex-1">{renderInlineFormatting(bulletContent)}</span>
+            </div>
+          );
+        }
+        const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+        if (numMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-1.5 ml-1 text-slate-700">
+              <span className="text-emerald-700 font-bold shrink-0">{numMatch[1]}.</span>
+              <span className="flex-1">{renderInlineFormatting(numMatch[2])}</span>
+            </div>
+          );
+        }
+        if (!trimmed) {
+          return <div key={idx} className="h-1" />;
+        }
+        return (
+          <p key={idx} className="leading-relaxed">
+            {renderInlineFormatting(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 let messageCounter = 0;
 const createMsgId = (prefix: string) => `${prefix}_${++messageCounter}`;
 
@@ -156,7 +224,7 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
               <h3 className="font-bold text-slate-900 text-sm">AI Credit Coach</h3>
               <span className="text-[10px] bg-emerald-100/80 text-emerald-800 border border-emerald-300/80 px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
-                Gemini 3.6 Flash Active
+                Gemini 2.5 Flash Active
               </span>
               <span className="hidden md:inline-flex text-[10px] bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded-full font-semibold">
                 Tailored to App Data
@@ -205,7 +273,11 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
                   : 'bg-slate-50 border border-slate-200/80 text-slate-800 font-medium'
               }`}
             >
-              <div className="whitespace-pre-line">{msg.text}</div>
+              {msg.sender === 'user' ? (
+                <div className="whitespace-pre-line">{msg.text}</div>
+              ) : (
+                renderFormattedCoachText(msg.text)
+              )}
 
               {/* Suggested Follow-up chips */}
               {msg.suggestedPrompts && (

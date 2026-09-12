@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   ShieldCheck,
@@ -40,6 +40,10 @@ export const LenderView: React.FC<LenderViewProps> = ({
     : `Borrower demonstrates verifiable commercial activity for ${passport.businessName} (${passport.businessType}). Capital facility of ${passport.capitalGoal.currency} ${passport.capitalGoal.amount.toLocaleString()} evaluated for ${passport.capitalGoal.purpose}.`;
 
   const [officerNotes, setOfficerNotes] = useState(defaultNotes);
+
+  useEffect(() => {
+    setOfficerNotes(defaultNotes);
+  }, [passport.userName, passport.businessName, passport.capitalGoal.amount]);
 
   const toggleChecklist = (key: keyof typeof checklist) => {
     setChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
