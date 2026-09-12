@@ -114,10 +114,10 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
       </div>
 
       {/* Side-by-Side Comparison Display */}
-      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-center">
           {/* Left: Base Score (Before) */}
-          <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-6 text-center relative">
+          <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 sm:p-6 text-center relative">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-white border border-slate-200 px-2.5 py-0.5 rounded-full shadow-xs">
               Baseline (Ama's Seed)
             </span>
@@ -132,7 +132,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
           </div>
 
           {/* Right: Projected Scenario Score (After) */}
-          <div className="bg-emerald-50/50 border-2 border-emerald-500/40 rounded-2xl p-6 text-center relative overflow-hidden shadow-sm">
+          <div className="bg-emerald-50/50 border-2 border-emerald-500/40 rounded-2xl p-5 sm:p-6 pt-10 sm:pt-6 text-center relative overflow-hidden shadow-sm">
             <div className="absolute top-3 right-3">
               {scenarioResult.scoreDelta > 0 && (
                 <span className="text-xs font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs animate-pulse">
@@ -201,7 +201,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
               </div>
               <button
                 onClick={() => onApplyScenario(params)}
-                className="inline-flex items-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm active:scale-95 shrink-0 self-start sm:self-auto"
+                className="inline-flex items-center justify-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm active:scale-95 w-full sm:w-auto shrink-0"
               >
                 <Check className="w-4 h-4" />
                 <span>Apply +{scenarioResult.scoreDelta} PTS to My Profile</span>
@@ -212,7 +212,7 @@ export const WhatIfSimulator: React.FC<WhatIfSimulatorProps> = ({
       </div>
 
       {/* Interactive Sliders & Controls */}
-      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
+      <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-7 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
         <h3 className="text-sm font-bold text-slate-900 mb-5 flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
           <span>Interactive Fine-Tuning Controls</span>

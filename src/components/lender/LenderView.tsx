@@ -92,7 +92,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handleDownloadDossier}
             className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3.5 py-2 rounded-xl transition shadow-xs"
@@ -114,7 +114,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
           {onBackToApp && (
             <button
               onClick={onBackToApp}
-              className="text-xs text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 font-bold px-3.5 py-2 rounded-xl transition ml-1"
+              className="text-xs text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 font-bold px-3.5 py-2 rounded-xl transition sm:ml-1"
             >
               ← Borrower Dashboard
             </button>
@@ -123,7 +123,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
       </div>
 
       {/* Reviewer Overview Card */}
-      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
+      <div className="bg-white border border-slate-200/80 rounded-3xl p-4 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]">
         {/* Header Strip */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
           <div>
@@ -138,8 +138,8 @@ export const LenderView: React.FC<LenderViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="text-right">
+          <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto">
+            <div className="text-left sm:text-right">
               <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Readiness Score</div>
               <div className="text-3xl font-black text-slate-900 tabular-nums tracking-tight">
                 {passport.score}
@@ -149,7 +149,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
                 {passport.readinessBand}
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Evidence Confidence</div>
               <div className="text-3xl font-black text-emerald-700 tabular-nums tracking-tight">
                 {passport.eci}%
@@ -358,10 +358,10 @@ export const LenderView: React.FC<LenderViewProps> = ({
           )}
 
           {/* Decision Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <button
               onClick={() => setDecision('approved')}
-              className={`inline-flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs ${
+              className={`inline-flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs ${
                 decision === 'approved'
                   ? 'bg-emerald-700 text-white'
                   : 'bg-emerald-600 hover:bg-emerald-700 text-white'
@@ -373,7 +373,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
 
             <button
               onClick={() => setDecision('conditional')}
-              className={`inline-flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl transition border shadow-xs ${
+              className={`inline-flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl transition border shadow-xs ${
                 decision === 'conditional'
                   ? 'bg-amber-600 text-white border-amber-600'
                   : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
@@ -385,7 +385,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
 
             <button
               onClick={() => setDecision('evidence_requested')}
-              className="inline-flex items-center gap-2 text-xs font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 px-4 py-2.5 rounded-xl transition shadow-xs ml-auto"
+              className="inline-flex items-center justify-center gap-2 text-xs font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 px-4 py-2.5 rounded-xl transition shadow-xs sm:ml-auto"
             >
               <Send className="w-3.5 h-3.5 text-emerald-600" />
               <span>Request Targeted Evidence</span>

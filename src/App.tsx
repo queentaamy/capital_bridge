@@ -501,7 +501,7 @@ export function App() {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden overflow-y-auto">
           {/* 1. DASHBOARD / OVERVIEW */}
           {currentTab === 'dashboard' && (
             <div className="space-y-6">
@@ -520,10 +520,10 @@ export function App() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => setCurrentTab('simulator')}
-                    className="inline-flex items-center gap-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 px-4 py-2.5 rounded-2xl transition shadow-xs"
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 px-3.5 sm:px-4 py-2.5 rounded-2xl transition shadow-xs"
                   >
                     <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
                     <span>Run What-If Test</span>
@@ -531,7 +531,7 @@ export function App() {
 
                   <button
                     onClick={() => setCurrentTab('coach')}
-                    className="inline-flex items-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-2xl transition shadow-sm"
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 sm:px-4 py-2.5 rounded-2xl transition shadow-sm"
                   >
                     <Bot className="w-4 h-4" />
                     <span>Ask AI Coach</span>
@@ -771,7 +771,7 @@ export function App() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
+                  <table className="w-full min-w-[580px] text-left text-xs">
                     <thead>
                       <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
                         <th className="py-3 px-4 rounded-l-xl">Evidence Source</th>

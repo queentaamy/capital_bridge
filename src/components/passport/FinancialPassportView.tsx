@@ -126,27 +126,27 @@ export const FinancialPassportView: React.FC<FinancialPassportViewProps> = ({
       </div>
 
       {/* The Passport Card (Fintech Credential) */}
-      <div className="bg-white border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.05)] relative overflow-hidden text-slate-800">
+      <div className="bg-white border-2 border-emerald-500/40 rounded-3xl p-4 sm:p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.05)] relative overflow-hidden text-slate-800">
         {/* Decorative corner watermark */}
         <div className="absolute -top-16 -right-16 w-60 h-60 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
 
         {/* Passport Header */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-slate-100">
           <div className="flex items-center gap-3.5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-black text-2xl shadow-md shadow-emerald-500/20">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-black text-xl sm:text-2xl shadow-md shadow-emerald-500/20 shrink-0">
               CB
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-lg text-slate-900 tracking-tight">
+                <span className="font-bold text-base sm:text-lg text-slate-900 tracking-tight">
                   CapitalBridge Passport
                 </span>
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
               </div>
               <div className="text-xs text-slate-500 font-medium">
                 Official Financial-Readiness Certificate
               </div>
-              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+              <div className="text-[10px] text-slate-400 font-mono mt-0.5 break-all">
                 Ref: {passport.verificationHash}
               </div>
             </div>
@@ -292,8 +292,8 @@ export const FinancialPassportView: React.FC<FinancialPassportViewProps> = ({
           <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
             Verified Evidence Provenance
           </div>
-          <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden text-xs shadow-xs">
-            <table className="w-full text-left">
+          <div className="bg-white border border-slate-200/80 rounded-2xl overflow-x-auto text-xs shadow-xs">
+            <table className="w-full min-w-[500px] text-left">
               <thead>
                 <tr className="border-b border-slate-200/80 text-[10px] uppercase text-slate-400 bg-slate-50/70 font-bold">
                   <th className="p-3.5">Evidence Category</th>

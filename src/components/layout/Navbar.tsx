@@ -77,20 +77,20 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="h-18 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-4 lg:px-8 flex items-center justify-between transition-colors">
-      {/* Brand Logo & Prototype Badge */}
-      <div className="flex items-center gap-4">
+    <header className="h-16 sm:h-18 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 px-3 sm:px-4 lg:px-8 flex items-center justify-between transition-colors max-w-full overflow-hidden">
+      {/* Brand Logo */}
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         <div
-          className="flex items-center gap-2.5 cursor-pointer"
+          className="flex items-center gap-2 sm:gap-2.5 cursor-pointer"
           onClick={onOpenLanding || onOpenProfile}
           title="Return to CapitalBridge Introduction"
         >
-          <div className="w-10 h-10 rounded-2xl bg-[#0B5738] flex items-center justify-center shadow-md shadow-emerald-500/20">
-            <span className="font-black text-white text-base tracking-tighter">CB</span>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#0B5738] flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+            <span className="font-black text-white text-sm sm:text-base tracking-tighter">CB</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 tracking-tight text-lg">CapitalBridge</span>
+              <span className="font-bold text-slate-900 tracking-tight text-base sm:text-lg">CapitalBridge</span>
             </div>
             <p className="text-[11px] text-slate-500 hidden sm:block font-medium">
               Explainable Financial-Readiness Platform
@@ -109,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Center/Right Context Items */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Supabase Cloud Sync Status Pill */}
         {cloudSyncStatus === 'synced' && (
           <div className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-2xl shadow-2xs">
@@ -137,15 +137,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Live Score Pill */}
-        <div className="flex items-center gap-2.5 bg-emerald-50/70 border border-emerald-200/70 rounded-2xl px-3.5 py-1.5 shadow-2xs">
-          <div className="text-right">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 bg-emerald-50/70 border border-emerald-200/70 rounded-2xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 shadow-2xs">
+          <div className="hidden sm:block text-right">
             <div className="text-[9px] uppercase tracking-wider text-emerald-800 font-bold">Readiness</div>
             <div className="text-xs font-black text-emerald-700">{readinessBand}</div>
           </div>
-          <div className="h-6 w-[1px] bg-emerald-200" />
-          <div className="text-lg font-black text-slate-900 tabular-nums tracking-tight">
+          <div className="hidden sm:block h-6 w-[1px] bg-emerald-200" />
+          <div className="text-sm sm:text-lg font-black text-slate-900 tabular-nums tracking-tight">
             {score}
-            <span className="text-xs font-normal text-slate-400">/1000</span>
+            <span className="text-[10px] sm:text-xs font-normal text-slate-400">/1000</span>
           </div>
         </div>
 
@@ -159,7 +159,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           onOpenAuth && (
             <button
               onClick={() => onOpenAuth('signin')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-2xl transition shadow-xs active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl transition shadow-xs active:scale-95 cursor-pointer shrink-0"
               title="Sign in to your CapitalBridge account"
             >
               <LogIn className="w-3.5 h-3.5 text-emerald-400" />
@@ -185,9 +185,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
             title="Switch accounts or view profile"
-            className="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-2xl px-3 py-1.5 text-xs text-left transition cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-2xl p-1 sm:px-3 sm:py-1.5 text-xs text-left transition cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
               {getInitials(profile.name)}
             </div>
             <div className="hidden md:block">
@@ -313,10 +313,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* Quick Action: Export / View Passport */}
+        {/* Quick Action: Export / View Passport (Accessible via BottomNav on mobile) */}
         <button
           onClick={onOpenPassport}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-2xl transition shadow-sm active:scale-95"
+          className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-2xl transition shadow-sm active:scale-95"
         >
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Passport</span>
@@ -327,7 +327,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={onResetDemo}
           title="Reset to Ama Mensah baseline state"
-          className="p-2 rounded-2xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition relative"
+          className="hidden sm:inline-flex p-2 rounded-2xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition relative"
         >
           <Bell className="w-4 h-4" />
           <span className="w-2 h-2 rounded-full bg-emerald-500 absolute top-2 right-2 ring-2 ring-white" />

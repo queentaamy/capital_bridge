@@ -113,7 +113,7 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
         {filteredRecords.map((rec) => (
           <div
             key={rec.id}
-            className={`rounded-3xl border p-6 transition flex flex-col justify-between ${
+            className={`rounded-3xl border p-4 sm:p-6 transition flex flex-col justify-between ${
               rec.isActive
                 ? 'bg-white border-slate-200/80 hover:border-slate-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)]'
                 : 'bg-slate-50/70 border-slate-200 opacity-60'
@@ -123,7 +123,7 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
               {/* Header */}
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
+                  <div className="w-9 h-9 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
                     <FileCheck2 className="w-4 h-4" />
                   </div>
                   <div>
@@ -137,7 +137,7 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
                 <button
                   onClick={() => onToggleRecord(rec.id)}
                   title={rec.isActive ? 'Disable record (simulate removal)' : 'Enable record'}
-                  className="p-1 text-slate-400 hover:text-slate-800 transition"
+                  className="p-1 text-slate-400 hover:text-slate-800 transition shrink-0"
                 >
                   {rec.isActive ? (
                     <ToggleRight className="w-6 h-6 text-emerald-600" />
@@ -151,7 +151,7 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
               <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-2 my-3 text-xs">
                 <div className="flex items-center justify-between text-slate-700">
                   <span className="text-slate-500 font-medium">Verified Source:</span>
-                  <span className="font-bold text-slate-800">{rec.sourceName}</span>
+                  <span className="font-bold text-slate-800 truncate max-w-[160px] text-right">{rec.sourceName}</span>
                 </div>
                 <div className="flex items-center justify-between text-slate-700">
                   <span className="text-slate-500 font-medium">Window:</span>
@@ -169,7 +169,7 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
                 {rec.totalInflow !== undefined && (
                   <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between">
                     <div className="text-[11px] text-slate-600 flex items-center gap-1">
-                      <ArrowDownRight className="w-3.5 h-3.5 text-emerald-600" />
+                      <ArrowDownRight className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>Inflows:</span>
                       <strong className="text-slate-900 font-bold">
                         GH₵ {rec.totalInflow.toLocaleString()}
@@ -177,7 +177,7 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
                     </div>
                     {rec.totalOutflow !== undefined && rec.totalOutflow > 0 && (
                       <div className="text-[11px] text-slate-600 flex items-center gap-1">
-                        <ArrowUpRight className="w-3.5 h-3.5 text-amber-600" />
+                        <ArrowUpRight className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span>Outflows:</span>
                         <strong className="text-slate-900 font-bold">
                           GH₵ {rec.totalOutflow.toLocaleString()}
@@ -195,12 +195,12 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
             </div>
 
             {/* Provenance Hash */}
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-              <span className="flex items-center gap-1">
-                <Hash className="w-3 h-3" />
-                <span>{rec.traceabilityHash || 'sha256-verified'}</span>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 font-mono">
+              <span className="flex items-center gap-1 truncate max-w-[180px]">
+                <Hash className="w-3 h-3 shrink-0" />
+                <span className="truncate">{rec.traceabilityHash || 'sha256-verified'}</span>
               </span>
-              <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-sans font-bold">
+              <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-sans font-bold shrink-0">
                 Consented & Audited
               </span>
             </div>
@@ -211,7 +211,7 @@ export const EvidenceManager: React.FC<EvidenceManagerProps> = ({
       {/* Add Evidence Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white border border-slate-200/80 rounded-3xl w-full max-w-lg p-6 sm:p-7 text-slate-800 shadow-2xl">
+          <div className="bg-white border border-slate-200/80 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 sm:p-7 text-slate-800 shadow-2xl">
             <h3 className="text-lg font-bold text-slate-900 mb-1">Add Consented Evidence</h3>
             <p className="text-xs text-slate-500 mb-4">
               Simulate submitting additional bookkeeping, bank statements, or savings logs.

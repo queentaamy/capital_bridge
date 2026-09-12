@@ -9,6 +9,11 @@
     --color-primary: #059669;
   }
 
+  html {
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: #f8fafc;

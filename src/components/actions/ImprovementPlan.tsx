@@ -28,7 +28,7 @@ export const ImprovementPlan: React.FC<ImprovementPlanProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-50/90 via-white to-teal-50/60 border border-emerald-200/80 rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-emerald-50/90 via-white to-teal-50/60 border border-emerald-200/80 rounded-3xl p-4 sm:p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4 text-emerald-600" />
@@ -42,7 +42,7 @@ export const ImprovementPlan: React.FC<ImprovementPlanProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0 bg-white border border-slate-200/80 p-4 sm:p-5 rounded-2xl shadow-xs">
+        <div className="flex items-center justify-between sm:justify-start gap-4 shrink-0 bg-white border border-slate-200/80 p-3.5 sm:p-5 rounded-2xl shadow-xs w-full sm:w-auto">
           <div>
             <div className="text-[10px] uppercase font-bold text-slate-400">Total Potential Gain</div>
             <div className="text-2xl sm:text-3xl font-black text-emerald-700 tabular-nums">
@@ -119,8 +119,8 @@ export const ImprovementPlan: React.FC<ImprovementPlanProps> = ({
               </div>
 
               {/* Point Gain Badge & Action */}
-              <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-                <div className="text-right">
+              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-slate-100 shrink-0">
+                <div className="text-left sm:text-right">
                   <div className="text-[10px] text-slate-400 uppercase font-bold">Estimated Lift</div>
                   <div className="text-base font-black text-emerald-700 tabular-nums">
                     +{action.estimatedPointGain} pts
