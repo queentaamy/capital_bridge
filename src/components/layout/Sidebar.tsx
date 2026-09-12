@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 select-none transition-colors">
+    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 select-none transition-colors sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Navigation Links */}
       <nav className="space-y-4 flex-1">
         {/* Main Menu Section */}
