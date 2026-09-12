@@ -26,7 +26,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-2 py-1.5 flex items-center justify-around shadow-xl">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 flex items-center justify-around shadow-lg">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = currentTab === tab.id;
@@ -34,13 +34,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           <button
             key={tab.id}
             onClick={() => onSelectTab(tab.id)}
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[10px] font-medium transition ${
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-[10px] font-medium transition ${
               isActive
-                ? 'text-emerald-400 font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-emerald-700 font-bold bg-emerald-50/80'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+            <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-600' : 'text-slate-400'}`} />
             <span>{tab.label}</span>
           </button>
         );

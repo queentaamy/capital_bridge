@@ -106,26 +106,54 @@ export function calculateAssessment(
 ): AssessmentResult {
   const activeRecords = records.filter((r) => r.isActive);
 
+  // Check dynamically if active records contains additional business records (e.g. reconstructed 3 months ledger)
+  const additionalBizMonths = activeRecords
+    .filter((r) => r.category === 'business' && r.id !== 'ev_biz_01')
+    .reduce((sum, r) => sum + (r.recordCount >= 60 ? 3 : 1), 0);
+
   // 1. Documentation Completeness (Base: 53. If +3 months added, becomes 85)
-  const extraMonths = options?.addBusinessRecordsMonths ?? 0;
-  const docBase = 53;
+  const extraMonths = options?.addBusinessRecordsMonths ?? Math.min(3, additionalBizMonths);
+  const hasBaseDocs =
+    (activeRecords.some((r) => r.id === 'ev_biz_01') || activeRecords.some((r) => r.category === 'business')) &&
+    activeRecords.some((r) => r.category === 'documents');
+  const docBase = hasBaseDocs
+    ? 53
+    : activeRecords.some((r) => r.category === 'business' || r.category === 'documents')
+    ? 38
+    : 20;
   const docValue = Math.min(100, Math.round(docBase + extraMonths * 10.7)); // 53 + 3*10.7 ~ 85
 
   // 2. Cash-flow Stability (Base: 64. If smoothed, becomes 86)
-  const cashflowValue = options?.smoothExpenseVolatility ? 86 : 64;
+  const hasTransactions = activeRecords.some((r) => r.category === 'transactions');
+  const cashflowValue = !hasTransactions ? 30 : options?.smoothExpenseVolatility ? 86 : 64;
 
-  // 3. Debt Burden (Base: 76. If debt reduced by 500, becomes 92)
-  const debtReduction = options?.reduceMonthlyDebtAmount ?? 0;
-  const debtValue = debtReduction >= 500 ? 92 : debtReduction > 0 ? 84 : 76;
+  // 3. Debt Burden (Base: 76. If debt reduced by 500 or debt obligation inactive, becomes 92)
+  const hasActiveObligation = activeRecords.some((r) => r.category === 'obligations');
+  const debtReduction = options?.reduceMonthlyDebtAmount ?? (!hasActiveObligation ? 500 : 0);
+  const debtValue = !hasActiveObligation ? 92 : debtReduction >= 500 ? 92 : debtReduction > 0 ? 84 : 76;
 
-  // 4. Savings Behaviour (Base: 80. If savings maintained, becomes 90)
-  const savingsValue = options?.maintainSavingsWeeks ? Math.min(95, 80 + options.maintainSavingsWeeks * 1.25) : 80;
+  // 4. Savings Behaviour (Base: 80. If savings maintained, becomes 90. If disabled, drops to 20)
+  const hasActiveSavings = activeRecords.some((r) => r.category === 'savings');
+  const baseSavings = hasActiveSavings ? 80 : 20;
+  const savingsValue = options?.maintainSavingsWeeks
+    ? Math.min(95, baseSavings + options.maintainSavingsWeeks * 1.25)
+    : baseSavings;
 
-  // 5. Business Activity (Base: 84)
-  const bizValue = extraMonths > 0 ? Math.min(96, 84 + extraMonths * 3) : 84;
+  // 5. Business Activity (Base: 84. If no business or transaction records, drops to 40)
+  const hasBizRecords = activeRecords.some((r) => r.category === 'business');
+  const bizValue = !hasBizRecords ? 40 : 84;
 
-  // 6. Income Consistency (Base: 82)
-  const incomeValue = 82;
+  // 6. Income Consistency (Base: 82. If bank record disabled, drops to 68)
+  const hasBank = activeRecords.some(
+    (r) => r.id === 'ev_bank_01' || r.sourceName.toLowerCase().includes('bank')
+  );
+  const hasMomo = activeRecords.some(
+    (r) =>
+      r.id === 'ev_momo_01' ||
+      r.sourceName.toLowerCase().includes('momo') ||
+      r.sourceName.toLowerCase().includes('mobile money')
+  );
+  const incomeValue = !hasMomo && !hasBank ? 30 : !hasMomo ? 35 : !hasBank ? 68 : 82;
 
   // Construct Indicators
   const indicatorValues: Record<IndicatorKey, number> = {
@@ -218,9 +246,9 @@ export function calculateAssessment(
   });
 
   // Calculate Evidence Confidence Index (ECI)
-  const completeness = extraMonths > 0 ? 94 : 88;
-  const consistency = options?.smoothExpenseVolatility ? 92 : 85;
-  const traceability = 85;
+  const completeness = extraMonths >= 3 ? 98 : extraMonths > 0 ? 94 : 88;
+  const consistency = options?.smoothExpenseVolatility ? 96 : extraMonths >= 3 ? 92 : 85;
+  const traceability = extraMonths >= 3 ? 92 : 85;
   const overallECI = Math.round(completeness * 0.4 + consistency * 0.3 + traceability * 0.3);
 
   const eci: EvidenceConfidenceIndex = {

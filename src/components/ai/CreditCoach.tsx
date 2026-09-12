@@ -5,6 +5,9 @@ import {
   Send,
   Sparkles,
   ShieldAlert,
+  SlidersHorizontal,
+  ListTodo,
+  FileCheck2,
 } from 'lucide-react';
 import type { AssessmentResult, ChatMessage, UserProfile } from '../../types';
 
@@ -22,6 +25,9 @@ const createMsgId = (prefix: string) => `${prefix}_${++messageCounter}`;
 export const CreditCoach: React.FC<CreditCoachProps> = ({
   profile,
   assessment,
+  onNavigateToSimulator,
+  onNavigateToPassport,
+  onNavigateToActions,
 }) => {
   const initialMessages: ChatMessage[] = [
     {
@@ -129,35 +135,35 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col h-[640px] shadow-xl overflow-hidden">
+    <div className="bg-white border border-slate-200/80 rounded-3xl flex flex-col h-[640px] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shadow-xs">
             <Bot className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-white text-sm">AI Credit Coach</h3>
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+              <h3 className="font-bold text-slate-900 text-sm">AI Credit Coach</h3>
+              <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full font-bold">
                 Grounded in Math
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500">
               Explains verified outputs • Does not invent numbers or make loan decisions
             </p>
           </div>
         </div>
 
         {/* Guardrail badge */}
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-400 bg-slate-800/60 px-3 py-1.5 rounded-xl border border-slate-700/60">
-          <ShieldAlert className="w-3.5 h-3.5 text-teal-400" />
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-xs font-semibold">
+          <ShieldAlert className="w-3.5 h-3.5 text-emerald-600" />
           <span>Audit-Verified Context</span>
         </div>
       </div>
 
       {/* Messages Thread */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -166,10 +172,10 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
             }`}
           >
             <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold ${
                 msg.sender === 'user'
-                  ? 'bg-slate-800 text-slate-300'
-                  : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs'
               }`}
             >
               {msg.sender === 'user' ? (
@@ -182,22 +188,22 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
                 msg.sender === 'user'
-                  ? 'bg-emerald-500 text-slate-950 font-medium'
-                  : 'bg-slate-950/80 border border-slate-800 text-slate-200'
+                  ? 'bg-emerald-600 text-white font-medium shadow-sm'
+                  : 'bg-slate-50 border border-slate-200/80 text-slate-800 font-medium'
               }`}
             >
               <div className="whitespace-pre-line">{msg.text}</div>
 
               {/* Suggested Follow-up chips */}
               {msg.suggestedPrompts && (
-                <div className="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap gap-1.5">
+                <div className="mt-3 pt-3 border-t border-slate-200/60 flex flex-wrap gap-1.5">
                   {msg.suggestedPrompts.map((prompt, i) => (
                     <button
                       key={i}
                       onClick={() => handleSendMessage(prompt)}
-                      className="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition border border-slate-700/60 flex items-center gap-1"
+                      className="text-[11px] bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 px-3 py-1 rounded-xl transition border border-slate-200/80 flex items-center gap-1 font-medium shadow-xs"
                     >
-                      <Sparkles className="w-3 h-3 text-teal-400" />
+                      <Sparkles className="w-3 h-3 text-emerald-600" />
                       <span>{prompt}</span>
                     </button>
                   ))}
@@ -208,16 +214,50 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
         ))}
 
         {isTyping && (
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Bot className="w-4 h-4 text-emerald-400 animate-pulse" />
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <Bot className="w-4 h-4 text-emerald-600 animate-pulse" />
             <span>Coach is analyzing assessment indicators...</span>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
 
+      {/* Quick Navigation Shortcuts */}
+      <div className="px-6 py-2.5 border-t border-slate-100 bg-slate-50/50 flex items-center gap-2 overflow-x-auto scrollbar-none text-[11px]">
+        <span className="text-slate-400 font-bold uppercase tracking-wider shrink-0 text-[10px]">
+          Direct Actions:
+        </span>
+        {onNavigateToSimulator && (
+          <button
+            onClick={onNavigateToSimulator}
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 px-3 py-1 rounded-xl transition font-semibold shadow-xs shrink-0"
+          >
+            <SlidersHorizontal className="w-3 h-3 text-emerald-600" />
+            <span>Test in Simulator</span>
+          </button>
+        )}
+        {onNavigateToActions && (
+          <button
+            onClick={onNavigateToActions}
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-800 border border-slate-200/80 px-3 py-1 rounded-xl transition font-semibold shadow-xs shrink-0"
+          >
+            <ListTodo className="w-3 h-3 text-amber-600" />
+            <span>View Action Tasks</span>
+          </button>
+        )}
+        {onNavigateToPassport && (
+          <button
+            onClick={onNavigateToPassport}
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 px-3 py-1 rounded-xl transition font-semibold shadow-xs shrink-0"
+          >
+            <FileCheck2 className="w-3 h-3 text-emerald-600" />
+            <span>Open Passport</span>
+          </button>
+        )}
+      </div>
+
       {/* Input Form */}
-      <div className="p-4 border-t border-slate-800 bg-slate-950/80">
+      <div className="p-4 border-t border-slate-200/80 bg-white">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -230,12 +270,12 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Ask why your score is 742, what is holding you back, or how to improve..."
-            className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition"
           />
           <button
             type="submit"
             disabled={!inputText.trim()}
-            className="p-3 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-slate-950 rounded-xl transition shadow-md shadow-emerald-500/20 active:scale-95 shrink-0"
+            className="p-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-xl transition shadow-sm active:scale-95 shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>
