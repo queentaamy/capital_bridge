@@ -1,0 +1,260 @@
+// ============================================================
+// Seed Data: Ama Mensah (Demo Persona)
+// Calibrated to 742/1000 Readiness Score and 86% ECI
+// ============================================================
+
+import type {
+  UserProfile,
+  EvidenceRecord,
+  ImprovementAction,
+  FinancialPassport,
+} from '../types';
+
+export const AMA_PROFILE: UserProfile = {
+  id: 'usr_ama_mensah_01',
+  name: 'Ama Mensah',
+  email: 'ama.mensah.kitchen@gmail.com',
+  phone: '+233 24 456 7890',
+  businessName: "Ama's Kitchen & Provisions",
+  businessType: 'Food & Quick-Service Eatery',
+  businessLocation: 'Makola Market, Accra, Ghana',
+  capitalGoalAmount: 8000, // GH₵8,000
+  capitalGoalPurpose: 'Inventory expansion & bulk ingredient purchase for peak season',
+  createdAt: '2026-06-15T09:00:00Z',
+  currency: 'GH₵',
+};
+
+export const INITIAL_EVIDENCE_RECORDS: EvidenceRecord[] = [
+  {
+    id: 'ev_momo_01',
+    category: 'transactions',
+    sourceName: 'MTN Mobile Money Merchant',
+    title: 'MoMo Business Inflows & Outflows (6 Months)',
+    dateRange: {
+      start: '2026-03-01',
+      end: '2026-08-31',
+    },
+    totalInflow: 48650,
+    totalOutflow: 37200,
+    balance: 11450,
+    status: 'consented_verified',
+    recordCount: 842,
+    traceabilityHash: 'sha256-mtn-98f219b',
+    notes: 'Primary payment channel used by daily lunch customers at Makola.',
+    isActive: true,
+  },
+  {
+    id: 'ev_bank_01',
+    category: 'transactions',
+    sourceName: 'Ecobank Ghana SME Account',
+    title: 'Operating Account Bank Statements (6 Months)',
+    dateRange: {
+      start: '2026-03-01',
+      end: '2026-08-31',
+    },
+    totalInflow: 18400,
+    totalOutflow: 16100,
+    balance: 4200,
+    status: 'consented_verified',
+    recordCount: 64,
+    traceabilityHash: 'sha256-eco-71b021a',
+    notes: 'Used for bulk supplier wholesale bank transfers.',
+    isActive: true,
+  },
+  {
+    id: 'ev_savings_01',
+    category: 'savings',
+    sourceName: 'Consented Susu Collector & Mobile Savings',
+    title: 'Weekly Susu Thrift Records (24 Weeks)',
+    dateRange: {
+      start: '2026-03-05',
+      end: '2026-08-28',
+    },
+    totalInflow: 7200,
+    totalOutflow: 0,
+    balance: 7200,
+    status: 'consented_verified',
+    recordCount: 24,
+    traceabilityHash: 'sha256-susu-48a318',
+    notes: 'Disciplined weekly deposits of GH₵300 without default or missed weeks.',
+    isActive: true,
+  },
+  {
+    id: 'ev_biz_01',
+    category: 'business',
+    sourceName: 'Physical & Digital Daily Sales Ledger',
+    title: 'Daily Meal Sales & Catering Order Books (3 Months)',
+    dateRange: {
+      start: '2026-06-01',
+      end: '2026-08-31',
+    },
+    totalInflow: 29400,
+    totalOutflow: 0,
+    balance: 29400,
+    status: 'consented_verified',
+    recordCount: 92,
+    traceabilityHash: 'sha256-ledg-10c92',
+    notes: 'Detailed records available for last 3 months; prior 3 months are missing.',
+    isActive: true,
+  },
+  {
+    id: 'ev_debt_01',
+    category: 'obligations',
+    sourceName: 'Advans Ghana MFI Micro-Loan',
+    title: 'Equipment Financing Micro-Loan Schedule',
+    dateRange: {
+      start: '2026-01-15',
+      end: '2026-10-15',
+    },
+    totalInflow: 0,
+    totalOutflow: 4000,
+    balance: 1000, // GH₵1,000 remaining
+    status: 'consented_verified',
+    recordCount: 8,
+    traceabilityHash: 'sha256-adv-55d01',
+    notes: 'Monthly repayment obligation of GH₵500. 8/10 installments paid on time.',
+    isActive: true,
+  },
+  {
+    id: 'ev_doc_01',
+    category: 'documents',
+    sourceName: 'Registrar General’s Department',
+    title: 'Ghana Business Registration Certificate (BN-2024-8192)',
+    dateRange: {
+      start: '2024-04-10',
+      end: '2027-04-10',
+    },
+    status: 'consented_verified',
+    recordCount: 1,
+    traceabilityHash: 'sha256-rgd-8192a',
+    notes: 'Sole proprietorship registration valid through 2027.',
+    isActive: true,
+  },
+  {
+    id: 'ev_doc_02',
+    category: 'documents',
+    sourceName: 'Accra Metropolitan Assembly (AMA)',
+    title: 'Food Hygiene & Health Permit 2026',
+    dateRange: {
+      start: '2026-01-01',
+      end: '2026-12-31',
+    },
+    status: 'consented_verified',
+    recordCount: 1,
+    traceabilityHash: 'sha256-ama-health-492',
+    notes: 'Current municipal health & inspection pass for eatery operation.',
+    isActive: true,
+  },
+];
+
+export const INITIAL_IMPROVEMENT_ACTIONS: ImprovementAction[] = [
+  {
+    id: 'act_01',
+    priority: 'High',
+    rank: 1,
+    title: 'Upload Missing 3 Months Business Sales Records',
+    rationale:
+      'Closing your bookkeeping gap (March to May 2026) bridges Documentation Completeness from 53 to 85, adding +48 readiness points.',
+    estimatedPointGain: 48,
+    category: 'business',
+    status: 'not_started',
+    actionType: 'upload_document',
+  },
+  {
+    id: 'act_02',
+    priority: 'High',
+    rank: 2,
+    title: 'Smooth Monthly Outflow Volatility',
+    rationale:
+      'Wholesale bulk payments currently spike expenses in week 1. Staggering supplier payments stabilizes Cash-flow Stability by +22 points.',
+    estimatedPointGain: 22,
+    category: 'transactions',
+    status: 'in_progress',
+    actionType: 'reduce_debt',
+  },
+  {
+    id: 'act_03',
+    priority: 'Medium',
+    rank: 3,
+    title: 'Complete Final 2 Installments of Advans Micro-Loan',
+    rationale:
+      'Paying off remaining GH₵1,000 frees up GH₵500/month debt capacity, boosting Debt Burden indicator to 92 (+24 points).',
+    estimatedPointGain: 24,
+    category: 'obligations',
+    status: 'not_started',
+    actionType: 'reduce_debt',
+  },
+  {
+    id: 'act_04',
+    priority: 'Medium',
+    rank: 4,
+    title: 'Maintain Consistent Susu Savings for Next 8 Weeks',
+    rationale:
+      'Extending your continuous savings streak past 30 weeks establishes formal resilience benchmarks for prime micro-credit.',
+    estimatedPointGain: 15,
+    category: 'savings',
+    status: 'in_progress',
+    actionType: 'consistent_savings',
+  },
+];
+
+export const SEEDED_FINANCIAL_PASSPORT: FinancialPassport = {
+  id: 'pass_ama_742',
+  profileId: 'usr_ama_mensah_01',
+  assessmentId: 'asm_baseline_742',
+  shareToken: 'ama-kitchen-gh8k-742',
+  userName: 'Ama Mensah',
+  businessName: "Ama's Kitchen & Provisions",
+  businessType: 'Food & Quick-Service Eatery',
+  capitalGoal: {
+    amount: 8000,
+    currency: 'GH₵',
+    purpose: 'Inventory expansion & bulk ingredient purchase for peak season',
+  },
+  score: 742,
+  readinessBand: 'Capital Ready',
+  eci: 86,
+  eciLevel: 'High confidence in available evidence',
+  verificationHash: 'CB-VERIFIED-GH-2026-742-86A',
+  keyIndicators: [
+    { label: 'Income Consistency', value: 82, level: 'good' },
+    { label: 'Business Activity', value: 84, level: 'good' },
+    { label: 'Savings Behaviour', value: 80, level: 'good' },
+    { label: 'Debt Service Capacity', value: 76, level: 'good' },
+    { label: 'Cash-flow Stability', value: 64, level: 'moderate' },
+    { label: 'Documentation Completeness', value: 53, level: 'gap' },
+  ],
+  verifiedEvidenceSummary: [
+    {
+      category: 'Mobile Money Inflows',
+      source: 'MTN MoMo Merchant (6 months)',
+      monthsCovered: 6,
+      verified: true,
+    },
+    {
+      category: 'Operating Bank Account',
+      source: 'Ecobank Ghana (6 months)',
+      monthsCovered: 6,
+      verified: true,
+    },
+    {
+      category: 'Micro Savings',
+      source: 'Thrift Susu Deposits (24 weeks)',
+      monthsCovered: 6,
+      verified: true,
+    },
+    {
+      category: 'Statutory Registration',
+      source: 'Registrar General & AMA Health Permit',
+      monthsCovered: 12,
+      verified: true,
+    },
+  ],
+  privacySettings: {
+    showRawBalances: false,
+    showTransactionDetails: false,
+    showObligationDetails: true,
+  },
+  expiresAt: '2026-10-12T23:59:59Z',
+  createdAt: '2026-09-12T01:30:00Z',
+};
