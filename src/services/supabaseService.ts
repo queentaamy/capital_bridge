@@ -415,4 +415,86 @@ export class SupabaseService {
       return false;
     }
   }
+
+  // --------------------------------------------------------------------------
+  // Supabase Auth Integration
+  // --------------------------------------------------------------------------
+
+  /**
+   * Signs in an existing user with email and password
+   */
+  static async signIn(email: string, password: string) {
+    return await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+  }
+
+  /**
+   * Signs up a new user with email and password, passing optional profile metadata
+   */
+  static async signUp(
+    email: string,
+    password: string,
+    metadata?: { name?: string; businessName?: string }
+  ) {
+    return await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: metadata || {},
+      },
+    });
+  }
+
+  /**
+   * Signs out the currently authenticated user
+   */
+  static async signOut() {
+    return await supabase.auth.signOut();
+  }
+
+  /**
+   * Retrieves the current Supabase Auth session
+   */
+  static async getSession() {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) return null;
+      return data.session;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Subscribes to Supabase Auth state changes
+   */
+  static onAuthStateChange(
+    callback: (event: string, session: any) => void
+  ) {
+    return supabase.auth.onAuthStateChange(callback);
+  }
+
+  /**
+   * Fetches a borrower profile by registered email
+   */
+  static async fetchProfileByEmail(email: string): Promise<UserProfile | null> {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email.trim().toLowerCase())
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        return null;
+      }
+      return mapProfileFromRow(data as ProfileRow);
+    } catch {
+      return null;
+    }
+  }
 }
+

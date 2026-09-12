@@ -15,6 +15,7 @@ import { LenderView } from './components/lender/LenderView';
 import { ProfileDrawer } from './components/ui/ProfileDrawer';
 import { TurnoverChart } from './components/dashboard/TurnoverChart';
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
+import { AuthModal } from './components/auth/AuthModal';
 import { SupabaseService } from './services/supabaseService';
 import { ProfileManager } from './services/profileManager';
 
@@ -56,6 +57,9 @@ export function App() {
   const [profiles, setProfiles] = useState<UserProfile[]>(() => ProfileManager.getStoredProfiles());
   const [activeProfileId, setActiveProfileId] = useState<string>(() => ProfileManager.getActiveProfileId());
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [sessionUser, setSessionUser] = useState<{ id: string; email: string } | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
 
   // Active user profile
   const profile = useMemo(() => {
@@ -138,6 +142,73 @@ export function App() {
   useEffect(() => {
     SupabaseService.syncAssessment(assessment, profile.id).catch(() => {});
   }, [assessment, profile.id]);
+
+  // Check active Supabase Auth session on mount and subscribe to changes
+  useEffect(() => {
+    let isMounted = true;
+    SupabaseService.getSession().then((session) => {
+      if (isMounted && session?.user?.email) {
+        setSessionUser({
+          id: session.user.id,
+          email: session.user.email,
+        });
+      }
+    });
+
+    const { data: authListener } = SupabaseService.onAuthStateChange(
+      async (_event, session) => {
+        if (!isMounted) return;
+        if (session?.user?.email) {
+          setSessionUser({
+            id: session.user.id,
+            email: session.user.email,
+          });
+        } else {
+          setSessionUser(null);
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Handle opening authentication modal
+  const handleOpenAuth = (mode: 'signin' | 'signup' = 'signin') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  // Handle user sign out
+  const handleSignOut = async () => {
+    await SupabaseService.signOut();
+    setSessionUser(null);
+    handleSelectProfile(AMA_PROFILE.id);
+    setNotification('Signed out. Reset active view to Ama Mensah demo profile.');
+    setTimeout(() => setNotification(null), 3500);
+  };
+
+  // Handle successful login or account registration
+  const handleAuthSuccess = (
+    user: { id: string; email: string },
+    linkedProfile?: UserProfile
+  ) => {
+    setSessionUser(user);
+    if (linkedProfile) {
+      setProfiles((prev) => [
+        linkedProfile,
+        ...prev.filter((p) => p.id !== linkedProfile.id),
+      ]);
+      handleSelectProfile(linkedProfile.id);
+      setNotification(`Welcome back, ${linkedProfile.name}!`);
+    } else {
+      setNotification(`Signed in as ${user.email}. Complete your business details below.`);
+      setIsOnboardingOpen(true);
+    }
+    setTimeout(() => setNotification(null), 4000);
+  };
 
   // Construct dynamic financial passport reflecting active profile
   const currentPassport: FinancialPassport = useMemo(() => {
@@ -333,6 +404,9 @@ export function App() {
         readinessBand={assessment.readinessBand}
         cloudSyncStatus={cloudSyncStatus}
         profiles={profiles}
+        sessionUser={sessionUser}
+        onOpenAuth={handleOpenAuth}
+        onSignOut={handleSignOut}
         onSelectProfile={handleSelectProfile}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
         onResetDemo={handleResetDemo}
@@ -347,6 +421,9 @@ export function App() {
           onSelectTab={setCurrentTab}
           evidenceCount={activeRecordsCount}
           openTasksCount={openTasksCount}
+          sessionUser={sessionUser}
+          onOpenAuth={handleOpenAuth}
+          onSignOut={handleSignOut}
           onOpenProfile={() => setIsProfileOpen(true)}
           onOpenOnboarding={() => setIsOnboardingOpen(true)}
         />
@@ -775,6 +852,19 @@ export function App() {
         onSelectAmaBenchmark={() => {
           setIsOnboardingOpen(false);
           handleSelectProfile(AMA_PROFILE.id);
+        }}
+      />
+
+      {/* Supabase Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authModalMode}
+        onSuccess={handleAuthSuccess}
+        onQuickDemoLogin={() => {
+          handleSelectProfile(AMA_PROFILE.id);
+          setNotification('Switched to Ama Mensah demo profile.');
+          setTimeout(() => setNotification(null), 3000);
         }}
       />
     </div>
