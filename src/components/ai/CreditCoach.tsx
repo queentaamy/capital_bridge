@@ -9,11 +9,17 @@ import {
   ListTodo,
   FileCheck2,
 } from 'lucide-react';
-import type { AssessmentResult, ChatMessage, UserProfile } from '../../types';
+import type { AssessmentResult, ChatMessage, EvidenceRecord, ImprovementAction, UserProfile } from '../../types';
+import {
+  generateCoachingResponse,
+  generateDeterministicFallbackResponse,
+} from '../../services/geminiCoachService';
 
 interface CreditCoachProps {
   profile: UserProfile;
   assessment: AssessmentResult;
+  records?: EvidenceRecord[];
+  actions?: ImprovementAction[];
   onNavigateToSimulator?: () => void;
   onNavigateToPassport?: () => void;
   onNavigateToActions?: () => void;
@@ -25,11 +31,12 @@ const createMsgId = (prefix: string) => `${prefix}_${++messageCounter}`;
 export const CreditCoach: React.FC<CreditCoachProps> = ({
   profile,
   assessment,
+  records,
+  actions,
   onNavigateToSimulator,
   onNavigateToPassport,
   onNavigateToActions,
 }) => {
-  const isAmaBenchmark = profile.id === 'usr_ama_mensah_01';
 
   const initialMessages: ChatMessage[] = [
     {
@@ -73,93 +80,13 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Grounded response generator strictly referencing deterministic numbers
+  // Grounded response generator fallback strictly referencing deterministic numbers
   const generateGroundedResponse = (query: string): string => {
-    const q = query.toLowerCase();
-
-    // Sort indicators from lowest to highest score to find true gap drivers
-    const sortedIndicators = (Object.keys(assessment.indicators) as Array<keyof typeof assessment.indicators>)
-      .map((k) => assessment.indicators[k])
-      .sort((a, b) => a.value - b.value);
-
-    const primaryGap = sortedIndicators[0];
-    const secondaryGap = sortedIndicators[1];
-    const topStrength = sortedIndicators[sortedIndicators.length - 1];
-
-    if (q.includes('why') && (q.includes('score') || q.includes(String(assessment.overallScore)) || q.includes('742'))) {
-      if (isAmaBenchmark && assessment.overallScore === 742) {
-        return (
-          `Your readiness score is ${assessment.overallScore}/1000 (${assessment.readinessBand}). ` +
-          `This is a deterministic weighted composite:\n\n` +
-          `• Strengths: Your Business Activity (${assessment.indicators.business_activity.value}/100), Income Consistency (${assessment.indicators.income_consistency.value}/100), and Susu Savings (${assessment.indicators.savings_behaviour.value}/100) are strong, contributing over 450 points.\n\n` +
-          `• Gaps: Your score is primarily constrained by Documentation Completeness (${assessment.indicators.documentation_completeness.value}/100) because you currently only have 3 months of sales ledgers instead of 6, and Cash-flow Stability (${assessment.indicators.cashflow_stability.value}/100) due to first-week supplier payment dips.`
-        );
-      }
-
-      return (
-        `Your readiness score is ${assessment.overallScore}/1000 (${assessment.readinessBand}). ` +
-        `This deterministic score is calculated directly from your consented evidence records:\n\n` +
-        `• Primary Strength: ${topStrength.label} (${topStrength.value}/100) earned ${topStrength.pointsEarned} points.\n` +
-        `• Key Gaps: ${primaryGap.label} is currently at ${primaryGap.value}/100 (${primaryGap.gapSummary}) and ${secondaryGap.label} is at ${secondaryGap.value}/100.\n\n` +
-        `Strengthening ${primaryGap.label} is the fastest way to increase your capital qualification.`
-      );
-    }
-
-    if (q.includes('holding') || q.includes('gap') || q.includes('weakness')) {
-      if (isAmaBenchmark && assessment.overallScore === 742) {
-        return (
-          `The two primary factors holding your profile back from reaching Prime Ready (800+) are:\n\n` +
-          `1. Documentation Blind Spot: Missing 3 months of daily business books (March - May 2026). This caps your documentation score at 53/100.\n` +
-          `2. Expense Volatility: Paying bulk food suppliers in single lump sums creates brief negative weekly cash dips, dragging cash-flow stability to 64/100.\n\n` +
-          `Resolving these two items can add +70 points to your readiness score.`
-        );
-      }
-
-      return (
-        `The primary factors currently limiting ${profile.businessName} from reaching a higher readiness tier are:\n\n` +
-        `1. ${primaryGap.label} (${primaryGap.value}/100): ${primaryGap.gapSummary}\n` +
-        `2. ${secondaryGap.label} (${secondaryGap.value}/100): ${secondaryGap.gapSummary}\n\n` +
-        `Targeting ${primaryGap.label} will produce the highest immediate lift in your readiness baseline.`
-      );
-    }
-
-    if (q.includes('improve first') || q.includes('800') || q.includes('action') || q.includes('priority')) {
-      if (isAmaBenchmark && assessment.overallScore === 742) {
-        return (
-          `Priority #1 Recommendation:\n` +
-          `Upload or reconstruct your missing 3 months of daily sales ledgers (March - May 2026).\n\n` +
-          `Why this first? It provides the highest ROI: it increases Documentation Completeness from 53 to 85, adding +48 points instantly and raising your Evidence Confidence Index (ECI) to 94%. You can test this exact change in the What-If Simulator right now!`
-        );
-      }
-
-      return (
-        `Priority #1 Recommendation for ${profile.name}:\n` +
-        `${primaryGap.recommendations[0]}\n\n` +
-        `Why this first? Addressing ${primaryGap.label} targets your lowest indicator (${primaryGap.value}/100) and offers the maximum potential point gain toward your ${profile.currency} ${profile.capitalGoalAmount.toLocaleString()} capital goal.`
-      );
-    }
-
-    if (q.includes('passport') || q.includes('explain my')) {
-      return (
-        `Your Financial Passport packages your verified evidence into a tamper-evident summary that financial institutions can trust. Instead of exposing your private transaction details or bank login, it proves: ` +
-        `(1) You generate regular turnover in ${profile.businessLocation || 'Ghana'}, (2) You maintain disciplined financial habits, and (3) Your Evidence Confidence is ${assessment.eci.overall}%. It translates your business activity into an institutional-grade story.`
-      );
-    }
-
-    if (q.includes('what if') || q.includes('3 months') || q.includes('scenario')) {
-      return (
-        `In the What-If Simulator, you can test how adding business ledgers, clearing debt, or smoothing cash outlays deterministically impacts your score (${assessment.overallScore}/1000). For example, adding documented bookkeeping records raises Evidence Confidence toward 94%, giving financing partners higher certainty in approving your ${profile.currency} ${profile.capitalGoalAmount.toLocaleString()} facility.`
-      );
-    }
-
-    return (
-      `Based on your verified assessment (${assessment.overallScore}/1000, Evidence Confidence: ${assessment.eci.overall}%):\n\n` +
-      `Your core financial activity for ${profile.businessName} is evaluated deterministically. Focus on closing ${primaryGap.label} (${primaryGap.value}/100) to maximize your capital readiness. Let me know if you would like me to explain any specific indicator or simulate a scenario!`
-    );
+    return generateDeterministicFallbackResponse(query, profile, assessment);
   };
 
-  const handleSendMessage = (textToSend: string) => {
-    if (!textToSend.trim()) return;
+  const handleSendMessage = async (textToSend: string) => {
+    if (!textToSend.trim() || isTyping) return;
 
     const userMsg: ChatMessage = {
       id: createMsgId('usr'),
@@ -172,12 +99,37 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
     setInputText('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const responseText = generateGroundedResponse(textToSend);
+    try {
+      // Build conversation turns
+      const recentHistory = messages.slice(-4).map((m) => ({
+        sender: m.sender,
+        text: m.text,
+      }));
+
+      const res = await generateCoachingResponse({
+        query: textToSend,
+        profile,
+        assessment,
+        evidenceRecords: records,
+        improvementActions: actions,
+        history: recentHistory,
+      });
+
       const coachMsg: ChatMessage = {
         id: createMsgId('coach'),
         sender: 'coach',
-        text: responseText,
+        text: res.text,
+        timestamp: 'Just now',
+        suggestedPrompts: res.suggestedPrompts,
+      };
+      setMessages((prev) => [...prev, coachMsg]);
+    } catch (err) {
+      console.warn('Gemini coaching response fallback:', err);
+      const fallbackText = generateGroundedResponse(textToSend);
+      const coachMsg: ChatMessage = {
+        id: createMsgId('coach'),
+        sender: 'coach',
+        text: fallbackText,
         timestamp: 'Just now',
         suggestedPrompts: [
           'What happens if I add 3 months of business records?',
@@ -186,8 +138,9 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
         ],
       };
       setMessages((prev) => [...prev, coachMsg]);
+    } finally {
       setIsTyping(false);
-    }, 600);
+    }
   };
 
   return (
@@ -199,14 +152,18 @@ export const CreditCoach: React.FC<CreditCoachProps> = ({
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-slate-900 text-sm">AI Credit Coach</h3>
-              <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full font-bold">
-                Grounded in Math
+              <span className="text-[10px] bg-emerald-100/80 text-emerald-800 border border-emerald-300/80 px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                Gemini 3.6 Flash Active
+              </span>
+              <span className="hidden md:inline-flex text-[10px] bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded-full font-semibold">
+                Tailored to App Data
               </span>
             </div>
             <p className="text-[11px] text-slate-500 line-clamp-1 sm:line-clamp-none">
-              Explains verified outputs • Does not invent numbers or make loan decisions
+              Strictly grounded in your verified financial records • Explains readiness math without hallucinations
             </p>
           </div>
         </div>

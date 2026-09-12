@@ -1019,6 +1019,8 @@ export function App() {
             <CreditCoach
               profile={profile}
               assessment={assessment}
+              records={records}
+              actions={actions}
               onNavigateToSimulator={() => setCurrentTab('simulator')}
               onNavigateToPassport={() => setCurrentTab('passport')}
               onNavigateToActions={() => setCurrentTab('actions')}

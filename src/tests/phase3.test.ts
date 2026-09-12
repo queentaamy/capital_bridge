@@ -6,6 +6,7 @@
 import { AMA_PROFILE, INITIAL_EVIDENCE_RECORDS, INITIAL_IMPROVEMENT_ACTIONS } from '../data/seedData';
 import { calculateAssessment } from '../services/assessmentEngine';
 import { runWhatIfScenario, PRESET_SCENARIOS } from '../services/scenarioEngine';
+import { generateDeterministicFallbackResponse } from '../services/geminiCoachService';
 import type { EvidenceRecord, ImprovementAction, IndicatorKey } from '../types';
 
 let testsPassed = 0;
@@ -175,15 +176,17 @@ async function runPhase3Tests() {
     { query: 'Why is my readiness score 742?', expectedKeywords: ['742', 'Capital Ready', 'Documentation Completeness', '53', '64'] },
     { query: 'What is holding my profile back?', expectedKeywords: ['Documentation Blind Spot', 'March - May 2026', 'Expense Volatility', '64'] },
     { query: 'What should I improve first?', expectedKeywords: ['Priority #1', '+48', '85', '94%'] },
-    { query: 'Explain my Financial Passport', expectedKeywords: ['Financial Passport', 'Makola Market', '86%'] },
+    { query: 'Explain my Financial Passport', expectedKeywords: ['Financial Passport', 'Ghana', '86%'] },
   ];
 
   coachPromptResponses.forEach(({ query, expectedKeywords }) => {
-    // In our implementation, CreditCoach uses generateGroundedResponse
-    assert(
-      expectedKeywords.length > 0,
-      `Prompt "${query}" targets verified indicators without hallucinations`
-    );
+    const response = generateDeterministicFallbackResponse(query, AMA_PROFILE, baseline);
+    expectedKeywords.forEach((kw) => {
+      assert(
+        response.includes(kw),
+        `Coach response for "${query.substring(0, 24)}..." cites verified fact "${kw}"`
+      );
+    });
   });
 
   // ----------------------------------------------------
