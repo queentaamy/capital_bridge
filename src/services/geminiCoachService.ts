@@ -52,6 +52,19 @@ function getGeminiApiKey(): string {
       if (process.env.GEMINI_API_KEY) {
         return process.env.GEMINI_API_KEY;
       }
+      // In local node / tsx test environment, resolve from .env if process.env is not preloaded
+      if (process.versions?.node) {
+        try {
+          const fs = (globalThis as any).require ? (globalThis as any).require('fs') : null;
+          if (fs && fs.existsSync && fs.existsSync('.env')) {
+            const raw = fs.readFileSync('.env', 'utf8');
+            const match = raw.match(/VITE_GEMINI_API_KEY\s*=\s*([^\r\n]+)/);
+            if (match && match[1]) {
+              return match[1].trim();
+            }
+          }
+        } catch {}
+      }
     }
   } catch {
     // ignore process errors
@@ -288,11 +301,24 @@ export async function generateCoachingResponse(
     const prompt = buildGroundingPrompt(req);
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
-    // Abort controller for a reasonable 12s timeout
+    // Abort controller for a 25s timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
     const body = {
+      system_instruction: {
+        parts: [
+          {
+            text: `You are the CapitalBridge AI Credit Readiness Coach.
+CRITICAL GROUNDING MANDATE:
+- You must ONLY give responses strictly tailored to the verified financial data, scores, and evidence provided in the application context.
+- NEVER invent, assume, or fabricate any external credit bureau scores, non-existent bank accounts, or external facilities.
+- NEVER make direct loan decisions, commitments, or promises of lending approval. You are an educational readiness coach explaining verified evidence and readiness math.
+- Always cite the exact verified numbers from the app (e.g. overall score out of 1000, readiness band, Evidence Confidence Index (ECI) percentage, and indicator points).
+- If the user asks questions unrelated to CapitalBridge financial readiness or asks to speculate on facts outside their application records, politely decline and refocus them on their verified financial evidence and improvement actions.`,
+          },
+        ],
+      },
       contents: [
         {
           role: 'user',
@@ -336,7 +362,10 @@ export async function generateCoachingResponse(
 
     const data = await response.json();
     const candidate = data.candidates?.[0];
-    const generatedText = candidate?.content?.parts?.[0]?.text;
+    const textPart =
+      candidate?.content?.parts?.find((p: any) => p.text && !p.thought) ||
+      candidate?.content?.parts?.[0];
+    const generatedText = textPart?.text;
 
     if (generatedText && generatedText.trim().length > 0) {
       return {

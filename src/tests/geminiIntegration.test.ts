@@ -3,9 +3,21 @@
 // Verifies live API key communication and strict app data grounding
 // ============================================================================
 
+import fs from 'fs';
 import { AMA_PROFILE, INITIAL_EVIDENCE_RECORDS, INITIAL_IMPROVEMENT_ACTIONS } from '../data/seedData';
 import { calculateAssessment } from '../services/assessmentEngine';
 import { generateCoachingResponse } from '../services/geminiCoachService';
+
+// Ensure .env variables are available to Node test runner
+try {
+  if (fs.existsSync('.env')) {
+    const raw = fs.readFileSync('.env', 'utf8');
+    const match = raw.match(/VITE_GEMINI_API_KEY\s*=\s*([^\r\n]+)/);
+    if (match && match[1]) {
+      process.env.VITE_GEMINI_API_KEY = match[1].trim();
+    }
+  }
+} catch {}
 
 async function testGeminiIntegration() {
   console.log('Testing Gemini 3.6 Flash Integration with live App Data...');
