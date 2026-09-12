@@ -11,6 +11,8 @@ import {
   Sparkles,
   UserCheck,
   UserPlus,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 
 export type TabType =
@@ -28,6 +30,9 @@ interface SidebarProps {
   onSelectTab: (tab: TabType) => void;
   evidenceCount: number;
   openTasksCount: number;
+  sessionUser?: { id: string; email: string } | null;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  onSignOut?: () => void;
   onOpenProfile?: () => void;
   onOpenOnboarding?: () => void;
 }
@@ -37,6 +42,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   evidenceCount,
   openTasksCount,
+  sessionUser = null,
+  onOpenAuth,
+  onSignOut,
   onOpenProfile,
   onOpenOnboarding,
 }) => {
@@ -155,22 +163,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
             General
           </div>
           <div className="space-y-1 mt-1">
+            {!sessionUser && onOpenAuth && (
+              <button
+                onClick={() => onOpenAuth('signin')}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200/80 transition cursor-pointer"
+              >
+                <LogIn className="w-4 h-4 text-emerald-600" />
+                <span>Sign In to Account</span>
+              </button>
+            )}
+
             {onOpenOnboarding && (
               <button
                 onClick={onOpenOnboarding}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition"
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition cursor-pointer"
               >
                 <UserPlus className="w-4 h-4 text-emerald-600" />
                 <span>+ New Account</span>
               </button>
             )}
+
             {onOpenProfile && (
               <button
                 onClick={onOpenProfile}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition"
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition cursor-pointer"
               >
                 <UserCheck className="w-4 h-4 text-emerald-600" />
                 <span>Profile & Consent</span>
+              </button>
+            )}
+
+            {sessionUser && onSignOut && (
+              <button
+                onClick={onSignOut}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                title={`Signed in as ${sessionUser.email}`}
+              >
+                <LogOut className="w-4 h-4 text-rose-500" />
+                <span className="truncate">Sign Out</span>
               </button>
             )}
           </div>

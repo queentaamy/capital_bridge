@@ -13,6 +13,8 @@ import {
   ChevronDown,
   Check,
   Building,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import type { UserProfile, ReadinessBand } from '../../types';
 
@@ -24,6 +26,9 @@ interface NavbarProps {
   readinessBand: ReadinessBand;
   cloudSyncStatus?: CloudSyncStatus;
   profiles?: UserProfile[];
+  sessionUser?: { id: string; email: string } | null;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  onSignOut?: () => void;
   onSelectProfile?: (profileId: string) => void;
   onOpenOnboarding?: () => void;
   onResetDemo: () => void;
@@ -37,6 +42,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   readinessBand,
   cloudSyncStatus = 'synced',
   profiles = [],
+  sessionUser = null,
+  onOpenAuth,
+  onSignOut,
   onSelectProfile,
   onOpenOnboarding,
   onResetDemo,
@@ -138,11 +146,30 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
+        {/* Sign In / Active Session Status */}
+        {sessionUser ? (
+          <div className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-3 py-1.5 rounded-2xl shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="max-w-[120px] truncate">{sessionUser.email}</span>
+          </div>
+        ) : (
+          onOpenAuth && (
+            <button
+              onClick={() => onOpenAuth('signin')}
+              className="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-2xl transition shadow-xs active:scale-95 cursor-pointer"
+              title="Sign in to your CapitalBridge account"
+            >
+              <LogIn className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Sign In</span>
+            </button>
+          )
+        )}
+
         {/* Create Account Action Button */}
         {onOpenOnboarding && (
           <button
             onClick={onOpenOnboarding}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-2xl transition shadow-2xs"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-2xl transition shadow-2xs cursor-pointer"
             title="Create a new financial readiness account"
           >
             <UserPlus className="w-3.5 h-3.5 text-emerald-600" />
@@ -233,10 +260,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setIsSwitcherOpen(false);
                       onOpenOnboarding();
                     }}
-                    className="w-full text-left px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 rounded-xl transition flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 rounded-xl transition flex items-center gap-2 cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4 text-emerald-600" />
                     <span>Create New Account...</span>
+                  </button>
+                )}
+
+                {!sessionUser && onOpenAuth && (
+                  <button
+                    onClick={() => {
+                      setIsSwitcherOpen(false);
+                      onOpenAuth('signin');
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4 text-slate-500" />
+                    <span>Sign In to Account...</span>
                   </button>
                 )}
 
@@ -246,10 +286,23 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setIsSwitcherOpen(false);
                       onOpenProfile();
                     }}
-                    className="w-full text-left px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-xl transition flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-xl transition flex items-center gap-2 cursor-pointer"
                   >
                     <Building className="w-4 h-4 text-slate-400" />
                     <span>View Profile & Consent</span>
+                  </button>
+                )}
+
+                {sessionUser && onSignOut && (
+                  <button
+                    onClick={() => {
+                      setIsSwitcherOpen(false);
+                      onSignOut();
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-500" />
+                    <span className="truncate">Sign Out ({sessionUser.email})</span>
                   </button>
                 )}
               </div>

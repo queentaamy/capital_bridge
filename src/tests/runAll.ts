@@ -5,5 +5,6 @@ import './phase3.test';
 import './phase4.test';
 import './phase5.test';
 import './onboarding.test';
+import './auth.test';
 
 
