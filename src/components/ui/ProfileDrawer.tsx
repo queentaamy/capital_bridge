@@ -163,7 +163,9 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 <Phone className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Mobile (MoMo):</span>
               </span>
-              <span className="font-mono text-slate-600">{profile.phone || '024 459 8120'}</span>
+              <span className="font-mono text-slate-600">
+                {profile.phone || (isAma ? '024 459 8120' : 'Not specified')}
+              </span>
             </div>
           </div>
 

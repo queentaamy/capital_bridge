@@ -170,10 +170,10 @@ export const LenderView: React.FC<LenderViewProps> = ({
               Debt Service Coverage (DSCR)
             </div>
             <div className="text-2xl font-black text-slate-900 tabular-nums mt-1">
-              {passport.userName === 'Ama Mensah' ? '2.4x' : passport.score >= 800 ? '3.2x' : passport.score >= 700 ? '2.4x' : passport.score >= 550 ? '1.5x' : '1.1x'}
+              {passport.score >= 800 ? '3.2x' : passport.score >= 700 ? '2.4x' : passport.score >= 550 ? '1.5x' : '1.1x'}
             </div>
             <div className="text-[11px] text-emerald-700 font-semibold mt-0.5">
-              ✓ Surpasses 1.25x MFI target
+              {passport.score >= 700 ? '✓ Surpasses 1.25x MFI target' : '⚠ Conditional under MFI target'}
             </div>
           </div>
 
@@ -182,10 +182,10 @@ export const LenderView: React.FC<LenderViewProps> = ({
               Monthly Free Cash Flow
             </div>
             <div className="text-2xl font-black text-slate-900 tabular-nums mt-1">
-              {passport.userName === 'Ama Mensah' ? 'GH₵ 2,100' : `${passport.capitalGoal.currency} ${Math.round(passport.capitalGoal.amount * 0.28).toLocaleString()}`}
+              {passport.capitalGoal.currency} {Math.round(passport.capitalGoal.amount * 0.28).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-              {passport.userName === 'Ama Mensah' ? 'After GH₵500 Advans debt service' : 'After monthly operating debt service'}
+              Operating free cash flow buffer
             </div>
           </div>
 
@@ -194,7 +194,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
               Target Capital Advance
             </div>
             <div className="text-2xl font-black text-emerald-700 tabular-nums mt-1">
-              GH₵ {passport.capitalGoal.amount.toLocaleString()}
+              {passport.capitalGoal.currency} {passport.capitalGoal.amount.toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
               {passport.capitalGoal.purpose}
@@ -303,7 +303,11 @@ export const LenderView: React.FC<LenderViewProps> = ({
                 </span>
                 <div>
                   <div className="font-bold">Documentation Depth (6 Months)</div>
-                  <div className="text-[11px] text-amber-800/80">3 months missing sales books (March-May 2026)</div>
+                  <div className="text-[11px] text-amber-800/80">
+                    {passport.userName === 'Ama Mensah'
+                      ? '3 months missing sales books (March-May 2026)'
+                      : 'Verified operational documentation & financial ledger depth'}
+                  </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold uppercase text-amber-700">
@@ -386,7 +390,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
               }`}
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>Approve Advance (GH₵8,000)</span>
+              <span>Approve Advance ({passport.capitalGoal.currency} {passport.capitalGoal.amount.toLocaleString()})</span>
             </button>
 
             <button
