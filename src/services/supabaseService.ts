@@ -5,6 +5,7 @@ import type {
   ImprovementAction,
   AssessmentResult,
   EvidenceCategory,
+  FinancialPassport,
 } from '../types';
 import {
   AMA_PROFILE,
@@ -266,9 +267,20 @@ export class SupabaseService {
   }
 
   /**
-   * Hydrates user profile by ID with fallback to local seed data
+   * Hydrates user profile by ID with fallback to benchmark demo profile only for Ama Mensah
    */
-  static async fetchProfile(profileId: string = AMA_PROFILE.id): Promise<UserProfile> {
+  static async fetchProfile(profileId: string = AMA_PROFILE.id): Promise<UserProfile | null> {
+    if (profileId === AMA_PROFILE.id) {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', profileId)
+          .single();
+        if (data) return mapProfileFromRow(data as ProfileRow);
+      } catch {}
+      return AMA_PROFILE;
+    }
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -277,16 +289,18 @@ export class SupabaseService {
         .single();
 
       if (error || !data) {
-        return AMA_PROFILE;
+        return null;
       }
       return mapProfileFromRow(data as ProfileRow);
     } catch {
-      return AMA_PROFILE;
+      return null;
     }
   }
 
   /**
-   * Fetches all evidence records for a profile, falling back to initial records
+   * Fetches all evidence records for a profile from Supabase.
+   * Only Ama Mensah profile falls back to initial benchmark records;
+   * all other profiles strictly load dynamic records from the backend.
    */
   static async fetchEvidenceRecords(
     profileId: string = AMA_PROFILE.id
@@ -299,16 +313,18 @@ export class SupabaseService {
         .order('created_at', { ascending: false });
 
       if (error || !data || data.length === 0) {
-        return INITIAL_EVIDENCE_RECORDS;
+        return profileId === AMA_PROFILE.id ? INITIAL_EVIDENCE_RECORDS : [];
       }
       return data.map((row: any) => mapEvidenceRecordFromRow(row as EvidenceRecordRow));
     } catch {
-      return INITIAL_EVIDENCE_RECORDS;
+      return profileId === AMA_PROFILE.id ? INITIAL_EVIDENCE_RECORDS : [];
     }
   }
 
   /**
-   * Fetches improvement actions, falling back to initial actions
+   * Fetches improvement actions from Supabase.
+   * Only Ama Mensah profile falls back to initial benchmark actions;
+   * all other profiles strictly load dynamic actions from the backend.
    */
   static async fetchImprovementActions(
     profileId: string = AMA_PROFILE.id
@@ -321,11 +337,11 @@ export class SupabaseService {
         .order('rank', { ascending: true });
 
       if (error || !data || data.length === 0) {
-        return INITIAL_IMPROVEMENT_ACTIONS;
+        return profileId === AMA_PROFILE.id ? INITIAL_IMPROVEMENT_ACTIONS : [];
       }
       return data.map((row: any) => mapActionFromRow(row as ImprovementActionRow));
     } catch {
-      return INITIAL_IMPROVEMENT_ACTIONS;
+      return profileId === AMA_PROFILE.id ? INITIAL_IMPROVEMENT_ACTIONS : [];
     }
   }
 
@@ -429,15 +445,16 @@ export class SupabaseService {
   }
 
   /**
-   * Persists the live assessment result to Supabase
+   * Persists the live assessment result to Supabase, including all 6 normalized indicators
    */
   static async syncAssessment(
     assessment: AssessmentResult,
     profileId: string = AMA_PROFILE.id
   ): Promise<boolean> {
     try {
+      const assessmentId = profileId === AMA_PROFILE.id ? 'asm_baseline_742' : `asm_${profileId}`;
       const assessmentRow = {
-        id: profileId === AMA_PROFILE.id ? 'asm_baseline_742' : `asm_${profileId}`,
+        id: assessmentId,
         profile_id: profileId,
         overall_score: assessment.overallScore,
         readiness_band: assessment.readinessBand,
@@ -452,9 +469,75 @@ export class SupabaseService {
         .from('assessments')
         .upsert([assessmentRow], { onConflict: 'id' });
 
+      if (error) return false;
+
+      // Upsert the 6 indicators into assessment_indicators table
+      if (assessment.indicators) {
+        const indicatorRows = Object.values(assessment.indicators).map((ind) => ({
+          id: `ind_${profileId}_${ind.key}`,
+          assessment_id: assessmentId,
+          indicator_key: ind.key,
+          value: ind.value,
+          weight: ind.weight,
+          level: ind.level,
+          gap_summary: ind.gapSummary || null,
+        }));
+
+        await supabase
+          .from('assessment_indicators')
+          .upsert(indicatorRows, { onConflict: 'id' });
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Persists the live verified financial passport to Supabase
+   */
+  static async syncFinancialPassport(passport: FinancialPassport): Promise<boolean> {
+    try {
+      const passportRow = {
+        id: passport.id,
+        profile_id: passport.profileId,
+        assessment_id: passport.assessmentId || (passport.profileId === AMA_PROFILE.id ? 'asm_baseline_742' : `asm_${passport.profileId}`),
+        share_token: passport.shareToken,
+        score: passport.score,
+        readiness_band: passport.readinessBand,
+        eci: passport.eci,
+        verification_hash: passport.verificationHash,
+        expires_at: passport.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('financial_passports')
+        .upsert([passportRow], { onConflict: 'id' });
+
       return !error;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Fetches the persisted financial passport from Supabase
+   */
+  static async fetchFinancialPassport(profileId: string): Promise<any | null> {
+    try {
+      const { data, error } = await supabase
+        .from('financial_passports')
+        .select('*')
+        .eq('profile_id', profileId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      return data;
+    } catch {
+      return null;
     }
   }
 

@@ -279,7 +279,11 @@ export const LenderView: React.FC<LenderViewProps> = ({
                 </span>
                 <div>
                   <div className="font-bold">Statutory & Municipal KYC</div>
-                  <div className="text-[11px] text-slate-500">Registrar General & AMA Health Inspection active</div>
+                  <div className="text-[11px] text-slate-500">
+                    {passport.userName === 'Ama Mensah'
+                      ? 'Registrar General & AMA Health Inspection active'
+                      : `${passport.businessName} Statutory Registrations & Permits active`}
+                  </div>
                 </div>
               </div>
               <span className="text-[10px] font-bold uppercase text-emerald-700">Valid</span>
@@ -316,7 +320,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
             <span>Loan Officer Credit Determination</span>
           </h4>
           <p className="text-xs text-slate-500 mb-4 leading-relaxed font-medium">
-            Make an official underwriting determination or dispatch targeted evidence requests to Ama's portal.
+            Make an official underwriting determination or dispatch targeted evidence requests to {passport.userName}&apos;s portal.
           </p>
 
           {/* Underwriter Notes Input */}
@@ -337,9 +341,11 @@ export const LenderView: React.FC<LenderViewProps> = ({
             <div className="mb-4 p-4 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-center gap-3 text-xs text-emerald-950">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
               <div>
-                <strong className="block font-bold">Credit Facility Approved: GH₵ 8,000.00</strong>
+                <strong className="block font-bold">
+                  Credit Facility Approved: {passport.capitalGoal.currency} {passport.capitalGoal.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </strong>
                 <span className="text-emerald-800 font-medium">
-                  Audit Ref: MFI-ACC-2026-09-842 • Ready for disbursement to Ecobank SME Account.
+                  Audit Ref: MFI-ACC-2026-09-842 • Ready for disbursement to verified operating account.
                 </span>
               </div>
             </div>
@@ -363,7 +369,7 @@ export const LenderView: React.FC<LenderViewProps> = ({
               <div>
                 <strong className="block font-bold">Targeted Evidence Request Dispatched</strong>
                 <span className="text-emerald-800 font-medium">
-                  SMS & in-app action request sent to Ama Mensah to close the March-May 2026 gap.
+                  SMS & in-app action request sent to {passport.userName} to close documentation gaps.
                 </span>
               </div>
             </div>

@@ -154,14 +154,26 @@ async function runPhase4Tests() {
   // ----------------------------------------------------
   console.log('\n--- Suite 5: Offline Resilience & Zero-Crash Fallback ---');
 
-  const fallbackProfile = await SupabaseService.fetchProfile('non_existent_profile_id');
-  assert(fallbackProfile.name === 'Ama Mensah', 'fetchProfile safely falls back to Ama Mensah when profile not found');
+  const amaProfile = await SupabaseService.fetchProfile(AMA_PROFILE.id);
+  assert(amaProfile?.name === 'Ama Mensah', 'fetchProfile preserves Ama Mensah benchmark profile');
+
+  const nonExistentProfile = await SupabaseService.fetchProfile('non_existent_profile_id');
+  assert(nonExistentProfile === null, 'fetchProfile safely returns null for unknown profile without leaking Ama data');
+
+  const amaRecords = await SupabaseService.fetchEvidenceRecords(AMA_PROFILE.id);
+  assert(amaRecords.length === 7, 'fetchEvidenceRecords preserves initial 7 records for Ama Mensah benchmark');
 
   const fallbackRecords = await SupabaseService.fetchEvidenceRecords('non_existent_profile_id');
-  assert(fallbackRecords.length === 7, 'fetchEvidenceRecords safely falls back to initial records collection');
+  assert(fallbackRecords.length === 0, 'fetchEvidenceRecords returns empty array for other/unknown profile with zero leakage');
+
+  const amaActions = await SupabaseService.fetchImprovementActions(AMA_PROFILE.id);
+  assert(amaActions.length === 4, 'fetchImprovementActions preserves initial 4 actions for Ama Mensah benchmark');
 
   const fallbackActions = await SupabaseService.fetchImprovementActions('non_existent_profile_id');
-  assert(fallbackActions.length === 4, 'fetchImprovementActions safely falls back to initial actions collection');
+  assert(fallbackActions.length === 0, 'fetchImprovementActions returns empty array for other/unknown profile with zero leakage');
+
+  const samuelRecords = await SupabaseService.fetchEvidenceRecords('usr_samuel_osarfo_1671');
+  assert(samuelRecords.length === 5, 'fetchEvidenceRecords dynamically loads Samuel Osarfo 5 records from Supabase backend');
 
   console.log('\n======================================================');
   console.log(`🏁 PHASE 4 TEST RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED`);
